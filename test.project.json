@@ -1,0 +1,14 @@
+{
+	"name": "Prism Tests",
+
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$path": "DevPackages",
+			"Prism": {
+				"$path": "default.project.json"
+			}
+		}
+	}
+}

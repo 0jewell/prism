@@ -1,0 +1,19 @@
+name = "astridyz/prism"
+version = "0.1.0"
+description = "Library based on Celesta"
+authors = ["astridyz"]
+repository = "https://github.com/astridyz/Prism"
+license = "MIT"
+includes = ["src", "src/*", "default.project.json", "pesde.toml"]
+
+[target]
+environment = "roblox"
+
+[wally_indices]
+default = "https://github.com/UpliftGames/wally-index"
+
+[indices]
+default = "https://github.com/pesde-pkg/index"
+
+[dev_dependencies]
+TestEZ = { wally = "roblox/testez", version = "^0.4.1" }
