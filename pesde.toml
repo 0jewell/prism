@@ -1,8 +1,8 @@
-name = "astridyz/prism"
+name = "0jewell/prism"
 version = "0.1.0"
 description = "Library based on Celesta"
-authors = ["astridyz"]
-repository = "https://github.com/astridyz/Prism"
+authors = ["0jewell"]
+repository = "https://github.com/0jewell/Prism"
 license = "MIT"
 includes = ["src", "src/*", "default.project.json", "pesde.toml"]
 
