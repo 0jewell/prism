@@ -3,11 +3,24 @@
 
 	"tree": {
 		"$className": "DataModel",
+		
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"$path": "DevPackages",
-			"Prism": {
-				"$path": "default.project.json"
+
+			"Packages": {
+				"$path": "roblox_packages",
+
+				"Prism": {
+					"$path": "default.project.json"
+				}
+			}
+		},
+
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			
+			"Tests": {
+				"$path": "tests"
 			}
 		}
 	}
