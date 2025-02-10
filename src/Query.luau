@@ -71,4 +71,4 @@ function JoinData<config, target>(
     return target
 end
 
-return Query
+return table.freeze(Query)

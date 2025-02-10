@@ -7,7 +7,6 @@ local function QueryTest()
         it('should create query', function()
             local query = Query { query = function() end }
             
-            
             expect(getmetatable(query)).to.be.ok()
             expect(typeof(query.settings)).to.equal('table')
 
