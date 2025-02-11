@@ -1,12 +1,4 @@
 --!nolint LocalUnused
-local Query = {}
-
-export type Entity = number
-export type Piece<D = nil> = {
-	id: Entity,
-	type: D
-}
-
 local DefaultSettings = {
     priority = 0
 }
@@ -28,6 +20,7 @@ export type Query<P...> = typeof(setmetatable(
     }
 ))
 
+local Query = {}
 local JoinData;
 
 function Query.New<P...>(
