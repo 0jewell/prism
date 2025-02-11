@@ -1,4 +1,3 @@
---!nolint LocalUnused
 local DefaultSettings = {
     priority = 0
 }
@@ -7,18 +6,7 @@ export type QuerySettings<P...> = {
     priority: number?
 }
 
-type Trait<P...> = (P...) -> unknown
-
-export type Query<P...> = typeof(setmetatable(
-    {} :: {
-        traits: { Trait<unknown> },
-        settings: QuerySettings<P...>,
-        [string]: (P...) -> ()
-    },
-    {} :: {
-        __newindex: (self: never, i: string, v: Trait<...unknown>) -> ()
-    }
-))
+export type Query<P...> = typeof(setmetatable({} :: queryFields<P...>, {} :: queryImpl))
 
 local Query = {}
 local JoinData;
@@ -63,5 +51,17 @@ function JoinData<config, target>(
 
     return target
 end
+
+type Trait<P...> = (P...) -> unknown
+
+type queryFields<P...> = {
+    traits: { Trait<unknown> },
+    settings: QuerySettings<P...>,
+    [string]: (P...) -> ()
+}
+
+type queryImpl = {
+    __newindex: (self: never, i: string, v: Trait<...unknown>) -> ()
+}
 
 return table.freeze(Query)

@@ -1,5 +1,5 @@
 export type Entity = number
-type None = 'none' | string
+export type None = string
 
 export type Piece<D = nil> = {
 	id: None | Entity,
@@ -15,11 +15,11 @@ local Piece = {}
     world:add(GlobalGameData, Map)
 
     world.data = {
-            [1] = {
-                * the model setted on default data
-                [2] = Testing
-            }
+        [1] = {
+            * the model setted on default data
+            [2] = Testing
         }
+    }
 ]]
 function Piece.New<D>(
     default: D
