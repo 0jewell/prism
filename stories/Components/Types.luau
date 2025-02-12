@@ -15,4 +15,8 @@ export type FrameProps = CommonProps & {
     size: UDim2?,
 }
 
+export type WindowProps = CommonProps & {
+    title: string?
+}
+
 return {}
