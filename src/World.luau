@@ -24,7 +24,10 @@ function World.add<D>(
     local worldData = self.data
 
     local pieceId = piece.id
-    assert(typeof(pieceId) == 'number', 'Invalid piece: does not have an id')
+    assert(
+        typeof(pieceId) == 'number',
+        'Invalid piece: does not have an id'
+    )
 
     if not worldData[entity] then
         worldData[entity] = {}
@@ -40,12 +43,13 @@ function World.ask<D>(
     piece: Piece<D>
 ): D?
 
-    local worldData = self.data
-
     local pieceId = piece.id
-    assert(typeof(pieceId) == 'number', 'Invalid piece: does not have an id')
+    assert(
+        typeof(pieceId) == 'number',
+        'Invalid piece: does not have an id'
+    )
 
-    local entityData = worldData[entity]
+    local entityData = self.data[entity]
     if not entityData then return end
 
     return entityData[pieceId]
@@ -57,15 +61,16 @@ function World.contains(
     ...: Piece
 ): boolean
 
-    local worldData = self.data
-
-    local entityData = worldData[entity]
+    local entityData = self.data[entity]
     if not entityData then return false end
 
     for i = 1, select("#", ...) do
 
         local piece = select(i, ...)
-        assert(typeof(piece) == 'table', 'Invalid argument: not a piece')
+        assert(
+            typeof(piece) == 'table',
+            'Invalid argument: not a piece'
+        )
         
         if not entityData[piece.id] then
             return false
