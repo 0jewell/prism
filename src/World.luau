@@ -4,9 +4,10 @@ local Piece = require(Prism.Piece)
 type Piece<D = nil> = Piece.Piece<D>
 type Entity = Piece.Entity
 
-export type World = typeof(setmetatable({} :: worldFields, {} :: worldImpl))
+type entityData = any | never
 
 local World = {}
+World.__index = World
 
 function World.New(): World
     local self = { data = {} }
@@ -80,14 +81,6 @@ function World.contains(
     return true
 end
 
-type entityData = any | never
-
-type worldFields = { data: { { entityData } } }
-
-type worldImpl = {
-    add: <D>(self: World, entity: Entity, piece: Piece<D>, data: D) -> D,
-    ask: <D>(self: World, entity: Entity, piece: Piece<D>) -> D?,
-    contains: (self: World, entity: Entity, ...Piece) -> boolean
-}
+export type World = typeof(World.New())
 
 return table.freeze(World)
