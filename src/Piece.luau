@@ -1,32 +1,16 @@
 export type Entity = number
 export type None = string
 
-export type Piece<D = nil> = {
-	id: None | Entity,
-	type: D
+export type Piece<D> = {
+	data: D
 }
 
-local Piece = {}
-
---[[
-    * pieces default data are set on entities when performing world:add
-    * example:
-    local Map = Prism.Piece(Assets.Maps.Testing)
-    world:add(GlobalGameData, Map)
-
-    world.data = {
-        [1] = {
-            * the model setted on default data
-            [2] = Testing
-        }
-    }
-]]
-function Piece.New<D>(
-    default: D
+local function Piece<D>(
+    default: D?
 ): Piece<D>
 
-    local self = { type = default, id = 'none' }
-
+    local self = { data = default :: D }
+    
     return self
 end
 
@@ -44,6 +28,6 @@ local function from<D>(
 end
 
 return table.freeze {
-    New = Piece.New,
+    New = Piece,
     from = from
 }

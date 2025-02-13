@@ -4,7 +4,7 @@ local Piece = require(Prism.Piece)
 type Piece<D = nil> = Piece.Piece<D>
 type Entity = Piece.Entity
 
-type entityData = any | never
+export type World = typeof(setmetatable({} :: worldFields, {} :: worldImpl))
 
 local World = {}
 World.__index = World
@@ -24,17 +24,11 @@ function World.add<D>(
 
     local worldData = self.data
 
-    local pieceId = piece.id
-    assert(
-        typeof(pieceId) == 'number',
-        'Invalid piece: does not have an id'
-    )
-
     if not worldData[entity] then
         worldData[entity] = {}
     end
     
-    worldData[entity][pieceId] = data
+    worldData[entity][piece] = data
     return data
 end
 
@@ -44,16 +38,10 @@ function World.ask<D>(
     piece: Piece<D>
 ): D?
 
-    local pieceId = piece.id
-    assert(
-        typeof(pieceId) == 'number',
-        'Invalid piece: does not have an id'
-    )
-
     local entityData = self.data[entity]
     if not entityData then return end
 
-    return entityData[pieceId]
+    return entityData[piece]
 end
 
 function World.contains(
@@ -73,7 +61,7 @@ function World.contains(
             'Invalid argument: not a piece'
         )
         
-        if not entityData[piece.id] then
+        if not entityData[piece] then
             return false
         end
     end
@@ -81,6 +69,16 @@ function World.contains(
     return true
 end
 
-export type World = typeof(World.New())
+type entityData = any | never
+
+type worldFields = { data: { [Entity]: {[Piece<unknown>]: entityData} } }
+
+type worldImpl = {
+    __index: worldImpl,
+    New: () -> World,
+    add: <D>(self: World, entity: Entity, piece: Piece<D>, data: D) -> D,
+    ask: <D>(self: World, entity: Entity, piece: Piece<D>) -> D?,
+    contains: (self: World, entity: Entity, ...Piece) -> boolean
+}
 
 return table.freeze(World)
