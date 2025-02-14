@@ -5,7 +5,7 @@ local Query = require(script.Query)
 export type Query<P...> = Query.Query<P...>
 
 local Piece = require(script.Piece)
-export type Piece<D = nil> = Piece.Piece<D>
+export type Piece<D = unknown> = Piece.Piece<D>
 export type Entity = Piece.Entity
 
 return table.freeze {

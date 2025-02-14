@@ -8,7 +8,7 @@ local Text = Components.Text
 
 local function Story(props)
 
-    local piece = { id = 1, type = 'hello' }
+    local piece = Prism.Piece()
     local query = Prism.Query { query = function() return piece end }
 
     local function queryDataToString<P...>(
