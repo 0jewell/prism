@@ -11,9 +11,9 @@ local function Story(props)
     local piece = Prism.Piece()
     local query = Prism.Query { query = function() return piece end }
 
-    local function queryDataToString<P...>(
+    local function querySettingsToString<P...>(
         query: Prism.Query<P...>
-    )
+    ): string
 
         local settings = query.settings
 
@@ -31,7 +31,7 @@ local function Story(props)
     local window = Window {  parent = props.target }
 
     Text {
-        order = 3, text = 'QUERY:\n' .. queryDataToString(query),
+        order = 3, text = 'QUERY:\n' .. querySettingsToString(query),
         size = UDim2.fromScale(1, 0.15), parent = window
     }
 

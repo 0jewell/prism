@@ -1,6 +1,8 @@
 export type Entity = number
 export type None = string
 
+export type usedAsEntity<D> = Entity | Piece<D>
+
 export type Piece<D = unknown> = {
 	data: D
 }

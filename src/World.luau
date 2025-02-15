@@ -3,39 +3,62 @@ local Prism = script.Parent
 local Piece = require(Prism.Piece)
 type Piece<D = unknown> = Piece.Piece<D>
 type Entity = Piece.Entity
+type usedAsEntity<D> = Piece.usedAsEntity<D>
 
 export type World = typeof(setmetatable({} :: worldFields, {} :: worldImpl))
-
-local World = {}
-World.__index = World
 
 local component_piece = Piece.New()
 
 local on_add_piece = Piece.New() :: Piece<onAddFunction>
-type onAddFunction = (entity: Entity, piece: Piece, data: unknown) -> ()
+type onAddFunction = <D>(entity: Entity, target: Entity, data: unknown) -> ()
+
+local SHIFT = 26
+local FACTOR = 2 ^ SHIFT
+
+local function pair(
+    relation: Entity,
+    target: Entity
+): Entity
+
+    return relation * FACTOR + target
+end
+
+local function unpackPair(
+    id: Entity
+): (Entity, Entity)
+
+    local relation = math.floor(id / FACTOR)
+    local target = id % FACTOR
+
+    return relation, target
+end
+
+local World = {}
+World.__index = World
 
 function World.New(): World
     local self = {
         data = {},
-        entityHas = {},
+        entityMap = {},
         cachedPieces = {},
         nextId = 1,
     }
     setmetatable(self, World)
 
+    self:add(component_piece, component_piece)
     self:add(on_add_piece, component_piece)
 
     return self
 end
 
-function World.entity<P...>(
+function World.entity(
     self: World
 ): Entity
 
     return self:entityAt(self.nextId)
 end
 
-function World.entityAt<P...>(
+function World.entityAt(
     self: World,
     at: number
 ): Entity
@@ -51,48 +74,63 @@ function World.entityAt<P...>(
     return at
 end
 
+local function castToEntity<D>(
+    world: World,
+    target: usedAsEntity<D>
+): Entity
+
+    local piecesCache = world.cachedPieces
+
+    if typeof(target) ~= 'table' then
+        assert(
+            typeof(target) == 'number',
+            'Invalid target: not a piece table or number'
+        )
+        return target
+    end
+
+    if piecesCache[target] then
+        return piecesCache[target]
+    end
+
+    local pieceEntity = world:entity()
+
+    piecesCache[target] = pieceEntity
+    return pieceEntity
+end
+
 function World.add<D>(
     self: World,
-    entity: Entity | Piece<D>,
-    piece: Piece<D>,
+    entity: usedAsEntity<D>,
+    target: usedAsEntity<D>,
     data: D?
 ): D?
 
-    local piecesCache = self.cachedPieces
+    if self:contains(entity, target) then return end
 
-    if not piecesCache[piece] then
-        local pieceEntity = self:entity()
-        self:add(pieceEntity, component_piece)
-
-        piecesCache[piece] = pieceEntity
-    end
-
-    local e do 
-        if typeof(entity) == 'number' then
-            e = entity
-        
-        elseif typeof(entity) == 'table' then
-            e = piecesCache[piece]
-        end
-    end
+    local entityCast = castToEntity(self, entity)
+    local targetCast = castToEntity(self, target)
     
     local worldData = self.data
+    local entityMap = self.entityMap
 
-    if not worldData[e] then
-        worldData[e] = {}
+    if not worldData[entityCast] then
+        worldData[entityCast] = {}
     end
 
-    local pieceEntity = piecesCache[piece]
-    
-    self.entityHas[e][pieceEntity] = true
+    if not entityMap[entityCast] then
+        entityMap[entityCast] = {}
+    end
+
+    entityMap[entityCast][targetCast] = true
     
     if data then
-        worldData[e][pieceEntity] = data
+        worldData[entityCast][targetCast] = data
 
-        local onAdd = self:ask(e, on_add_piece)
+        local onAdd = self:ask(entityCast, on_add_piece)
 
         if onAdd then
-            onAdd(e, piece, data)
+            onAdd(entityCast, targetCast, data)
         end
     end
 
@@ -102,37 +140,35 @@ end
 function World.ask<D>(
     self: World,
     entity: Entity,
-    piece: Piece<D>
+    target: usedAsEntity<D>
 ): D?
 
     local entityData = self.data[entity]
-    if not entityData then return end
+    assert(
+        entityData,
+        'Invalid entity: does not have data. Check using contains first'
+    )
 
-    local pieceEntity = self.cachedPieces[piece]
-    if not pieceEntity then return end
+    local pieceEntity = castToEntity(self, target)
 
     return entityData[pieceEntity]
 end
 
-function World.contains(
+function World.contains<D>(
     self: World,
-    entity: Entity,
-    ...: Piece
+    entity: usedAsEntity<D>,
+    ...: usedAsEntity<D>
 ): boolean
 
-    local entityData = self.data[entity]
+    local entityCast = castToEntity(self, entity)
+
+    local entityData = self.data[entityCast]
     if not entityData then return false end
 
     for i = 1, select("#", ...) do
 
         local piece = select(i, ...)
-        assert(
-            typeof(piece) == 'table',
-            'Invalid argument: not a piece'
-        )
-
-        local pieceEntity = self.cachedPieces[piece]
-        if not pieceEntity then return false end
+        local pieceEntity = castToEntity(self, piece)
         
         if not entityData[pieceEntity] then
             return false
@@ -148,18 +184,26 @@ type dataColumn<D> = { [Entity]: D }
 type worldFields = {
     data: { [Entity]: dataColumn<entityData> },
     cachedPieces: { [Piece]: Entity },
-    entityHas: { [Entity]: dataColumn<true> },
+    entityMap: { [Entity]: dataColumn<true> },
     nextId: number,
 }
 
 type worldImpl = {
     __index: worldImpl,
     New: () -> World,
-    entity: <P...>(self: World) -> Entity,
-    entityAt: <P...>(self: World, at: number) -> Entity,
-    add: <D>(self: World, entity: Entity | Piece<D>, piece: Piece<D>, data: D?) -> D?,
-    ask: <D>(self: World, entity: Entity, piece: Piece<D>) -> D?,
-    contains: (self: World, entity: Entity, ...Piece) -> boolean
+    entity: (self: World) -> Entity,
+    entityAt: (self: World, at: number) -> Entity,
+    add: <D>(self: World, entity: usedAsEntity<D>, target: usedAsEntity<D>, data: D?) -> D?,
+    ask: <D>(self: World, entity: Entity, target: usedAsEntity<D>) -> D?,
+    contains: <D>(self: World, entity: usedAsEntity<D>, ...usedAsEntity<D>) -> boolean
 }
 
-return table.freeze(World)
+return {
+    New = World.New,
+
+    component = component_piece,
+    on_add = on_add_piece,
+
+    pair = pair,
+    unpackPair = unpackPair
+}

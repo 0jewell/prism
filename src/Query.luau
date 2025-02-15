@@ -8,10 +8,10 @@ export type QuerySettings<P...> = {
 
 export type Query<P...> = typeof(setmetatable({} :: queryFields<P...>, {} :: queryImpl<P...>))
 
+local JoinData;
+
 local Query = {}
 Query.__index = Query
-
-local JoinData;
 
 function Query.New<P...>(
     settings: QuerySettings<P...>
