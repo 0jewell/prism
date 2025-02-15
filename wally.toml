@@ -1,0 +1,11 @@
+[package]
+name = "0jewell/prism"
+version = "0.1.0"
+description = "Library based on Celesta"
+license = "MIT"
+authors = ["0jewell"]
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+exclude = ["**"]
+include = ["src", "src/*", "default.project.json", "wally.lock", "wally.toml"]

@@ -3,7 +3,8 @@ Archives
 # Pesde
 roblox_packages
 
-pesde.lock
+# Lock files
+*.lock
 
 # Rojo
 sourcemap.json

@@ -1,17 +1,16 @@
 {
-    "luau-lsp.sourcemap.rojoProjectFile": "test.project.json",
-    "luau-lsp.sourcemap.autogenerate": true,
-    "luau-lsp.platform.type": "roblox",
-    "luau-lsp.fflags.sync": true,
-    "luau-lsp.sourcemap.enabled": true,
-    "luau-lsp.types.definitionFiles": [
-        "tests/Testez.d.luau"
-    ],
-
-    "files.exclude": {
-        "roblox_packages": true,
-        "sourcemap.json": true,
-        "pesde.lock": true,
-        ".vscode": true
-    }
+  "luau-lsp.sourcemap.rojoProjectFile": "test.project.json",
+  "luau-lsp.sourcemap.autogenerate": true,
+  "luau-lsp.platform.type": "roblox",
+  "luau-lsp.fflags.sync": true,
+  "luau-lsp.sourcemap.enabled": true,
+  "luau-lsp.types.definitionFiles": [
+    "tests/Testez.d.luau"
+  ],
+  "files.exclude": {
+    "sourcemap.json": true,
+    "pesde.lock": true,
+    ".vscode": true,
+    "wally.lock": true
+  },
 }
