@@ -6,11 +6,5 @@
   "luau-lsp.sourcemap.enabled": true,
   "luau-lsp.types.definitionFiles": [
     "tests/Testez.d.luau"
-  ],
-  "files.exclude": {
-    "sourcemap.json": true,
-    "pesde.lock": true,
-    ".vscode": true,
-    "wally.lock": true
-  },
+  ]
 }
