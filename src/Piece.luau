@@ -3,6 +3,10 @@ export type None = string
 
 export type usedAsEntity<D> = Entity | Piece<D>
 
+export type onAddFunction = <D>(
+    entity: Entity, target: Entity, data: unknown
+) -> ()
+
 export type Piece<D = unknown> = {
 	data: D
 }
@@ -29,7 +33,13 @@ local function from<D>(
     end
 end
 
+local component = Piece()
+local onAdd = Piece() :: Piece<onAddFunction>
+
 return table.freeze {
     New = Piece,
-    from = from
+    from = from,
+
+    component = component,
+    onAdd = onAdd
 }

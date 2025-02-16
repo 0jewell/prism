@@ -5,33 +5,10 @@ type Piece<D = unknown> = Piece.Piece<D>
 type Entity = Piece.Entity
 type usedAsEntity<D> = Piece.usedAsEntity<D>
 
+local component = Piece.component
+local onAdd = Piece.onAdd
+
 export type World = typeof(setmetatable({} :: worldFields, {} :: worldImpl))
-
-local component_piece = Piece.New()
-
-local on_add_piece = Piece.New() :: Piece<onAddFunction>
-type onAddFunction = <D>(entity: Entity, target: Entity, data: unknown) -> ()
-
-local SHIFT = 26
-local FACTOR = 2 ^ SHIFT
-
-local function pair(
-    relation: Entity,
-    target: Entity
-): Entity
-
-    return relation * FACTOR + target
-end
-
-local function unpackPair(
-    id: Entity
-): (Entity, Entity)
-
-    local relation = math.floor(id / FACTOR)
-    local target = id % FACTOR
-
-    return relation, target
-end
 
 local World = {}
 World.__index = World
@@ -45,8 +22,8 @@ function World.New(): World
     }
     setmetatable(self, World)
 
-    self:add(component_piece, component_piece)
-    self:add(on_add_piece, component_piece)
+    self:add(component, component)
+    self:add(onAdd, component)
 
     return self
 end
@@ -127,7 +104,7 @@ function World.add<D>(
     if data then
         worldData[entityCast][targetCast] = data
 
-        local onAdd = self:ask(entityCast, on_add_piece)
+        local onAdd = self:ask(entityCast, onAdd)
 
         if onAdd then
             onAdd(entityCast, targetCast, data)
@@ -178,6 +155,26 @@ function World.contains<D>(
     return true
 end
 
+local FACTOR = 2 ^ 26
+
+local function pair(
+    relation: Entity,
+    target: Entity
+): Entity
+
+    return relation * FACTOR + target
+end
+
+local function unpackPair(
+    id: Entity
+): (Entity, Entity)
+
+    local relation = math.floor(id / FACTOR)
+    local target = id % FACTOR
+
+    return relation, target
+end
+
 type entityData = any | never
 type dataColumn<D> = { [Entity]: D }
 
@@ -201,8 +198,8 @@ type worldImpl = {
 return {
     New = World.New,
 
-    component = component_piece,
-    on_add = on_add_piece,
+    component = component,
+    on_add = onAdd,
 
     pair = pair,
     unpackPair = unpackPair

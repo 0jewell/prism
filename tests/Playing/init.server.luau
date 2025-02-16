@@ -1,4 +1,6 @@
-local Prism = require(game.ReplicatedStorage.Packages.Prism)
+local Packages = game.ReplicatedStorage.Packages
+local Prism = require(Packages.Prism)
+
 local on_add = Prism.on_add
 local pair = Prism.pair
 
