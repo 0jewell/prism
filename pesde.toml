@@ -17,3 +17,4 @@ default = "https://github.com/pesde-pkg/index"
 
 [dev_dependencies]
 TestEZ = { wally = "roblox/testez", version = "^0.4.1" }
+Iris = { wally = "sirmallard/iris", version = "2.4.1" }
