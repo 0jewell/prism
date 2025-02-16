@@ -45,8 +45,8 @@ function World.entityAt(
     end
 
     if at >= self.nextId then
-		self.nextId = at + 1
-	end
+        self.nextId = at + 1
+    end
 
     return at
 end
@@ -100,6 +100,16 @@ function World.add<D>(
     end
 
     entityMap[entityCast][targetCast] = true
+
+    if not data then
+        if typeof(target) == 'table' then
+
+            local default = target.data
+            if not default then return end
+    
+            data = default
+        end
+    end
     
     if data then
         worldData[entityCast][targetCast] = data
@@ -142,7 +152,7 @@ function World.contains<D>(
     local entityData = self.data[entityCast]
     if not entityData then return false end
 
-    for i = 1, select("#", ...) do
+    for i = 1, select('#', ...) do
 
         local piece = select(i, ...)
         local pieceEntity = castToEntity(self, piece)
