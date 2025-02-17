@@ -1,4 +1,4 @@
-export type Piece<D = unknown> = {
+export type Piece<D = nil> = {
 	data: D
 }
 

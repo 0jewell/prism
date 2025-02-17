@@ -1,22 +1,16 @@
-local World = require(script.World)
-export type World = World.World
+local Registry = require(script.Registry)
+export type Registry = Registry.Registry
+export type Entity = Registry.Entity
+export type UsedAsEntity<D = nil> = Registry.UsedAsEntity<D>
 
 local Query = require(script.Query)
 export type Query<P...> = Query.Query<P...>
 
 local Piece = require(script.Piece)
 export type Piece<D = unknown> = Piece.Piece<D>
-export type Entity = Piece.Entity
-export type usedAsEntity<D> = Piece.usedAsEntity<D>
 
 return table.freeze {
-    World = World.New,
+    Registry = Registry.New,
     Query = Query.New,
-    Piece = Piece.New,
-    
-    component = World.component,
-    on_add = World.on_add,
-
-    pair = World.pair,
-    unpackPair = World.unpackPair
+    Piece = Piece.New
 }
