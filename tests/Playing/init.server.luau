@@ -1,23 +1,23 @@
-local Packages = game.ReplicatedStorage.Packages
-local Prism = require(Packages.Prism)
+local Prism = require(game.ReplicatedStorage.Packages.Prism)
+local Piece = Prism.Piece
 
-local on_add = Prism.on_add
-local pair = Prism.pair
+local mapQuery = Prism.mapQuery
+local match = Prism.match
 
-local World = Prism.World()
+local Registry = Prism.Registry()
 
-local e = World:entity()
-local e2 = World:entity()
-local e3 = World:entity()
+local Piece1, Piece2 = Piece(), Piece()
+local QueryMap = mapQuery (Registry, { Piece1, Piece2 })
 
-World:add(e, on_add, function(entity, target, data)
-    print(target, 'added', data, 'to', entity)
-end)
+local entity = Registry:entity()
 
-World:add(e, e2, 'data')
-World:add(e, e3, 'more data')
+Registry:add(entity, Piece1)
+Registry:add(entity, Piece2)
 
-local Eats = World:entity()
-local Apples = World:entity()
+print(Registry:contains(entity, Piece()))
 
-World:add(e, pair(Eats, Apples), 10)
+if match(Registry, entity, QueryMap) then
+	print('Entity matches')
+else
+	print('Entity does not match')
+end

@@ -106,6 +106,8 @@ do
         entity: UsedAsEntity,
         data: D?
     ): D?
+
+        if self:contains(entity, target) then return end
         
         local castedTarget = CastToEntity(self, target)
         local castedEntity = CastToEntity(self, entity)
@@ -168,6 +170,86 @@ do
 
         return true
     end
+
+    function Registry.ask<D>(
+        self: Registry,
+        target: UsedAsEntity,
+        entity: UsedAsEntity<D>
+    ): D?
+    
+        local castedTarget = CastToEntity(self, target)
+
+        local targetData = self.data[castedTarget]
+        assert(
+            targetData,
+            'Invalid entity: does not have data. Check using contains first'
+        )
+
+        local castedEntity = CastToEntity(self, entity)
+
+        return targetData[castedEntity]
+    end
+end
+
+local FACTOR = 2 ^ 26
+
+local function pair(
+    relation: Entity,
+    target: Entity
+): Entity
+
+    return relation * FACTOR + target
+end
+
+local function unpackPair(
+    id: Entity
+): (Entity, Entity)
+
+    local relation = math.floor(id / FACTOR)
+    local target = id % FACTOR
+
+    return relation, target
+end
+
+--// Drafting
+local function createQueryMap(
+    registry: Registry,
+    entities: { UsedAsEntity }
+): EntityMap
+
+    local map = {}
+
+    for _, entity in entities do
+        local castedEntity = CastToEntity(registry, entity)
+
+        local record = registry.entityRecords[castedEntity]
+        assert(record, 'Invalid entity: no record')
+
+        map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
+    end
+
+    return map
+end
+
+local function match(
+    registry: Registry,
+    entity: UsedAsEntity,
+    queryMap: EntityMap
+): boolean
+
+    local castedEntity = CastToEntity(registry, entity)
+
+    local entityMap = registry.entityMaps[castedEntity]
+    assert(entityMap, 'Invalid entity, no map')
+    
+    for word, bits in queryMap do
+        
+        if bit32.band(entityMap[word], bits) ~= bits then
+			return false
+		end
+    end
+
+    return true
 end
 
 type RegistryFields = {
@@ -184,7 +266,16 @@ type RegistryImpl = {
     entity: (self: Registry) -> Entity,
     entityAt: (self: Registry, at: number) -> Entity,
     add: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity, data: D?) -> D?,
-    contains: (self: Registry, target: UsedAsEntity, entity: UsedAsEntity) -> boolean
+    contains: (self: Registry, target: UsedAsEntity, entity: UsedAsEntity) -> boolean,
+    ask: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>) -> D?
 }
 
-return Registry
+return table.freeze {
+    New = Registry.New,
+
+    pair = pair,
+    unpackPair = unpackPair,
+
+    mapQuery = createQueryMap,
+    match = match
+}
