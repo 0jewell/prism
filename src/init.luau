@@ -13,9 +13,7 @@ return table.freeze {
     World = World.New,
     Query = Query.New,
     Piece = Piece.New,
-
-    from = Piece.from,
-
+    
     component = World.component,
     on_add = World.on_add,
 
