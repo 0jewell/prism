@@ -30,6 +30,7 @@ do
             nextId = 1,
             cachedPieces = {},
             entityRecords = {},
+            entityMaps = {},
             data = {}
         }
 
@@ -63,11 +64,9 @@ do
         at: number
     ): Entity
 
-        --[[
         if self:contains(at) then
             error('Invalid id: entity already exist')
         end
-        ]]
     
         if at >= self.nextId then
             self.nextId = at + 1
@@ -101,14 +100,73 @@ do
         return castedEntity
     end
 
-    function Registry.add(
+    function Registry.add<D>(
         self: Registry,
         target: UsedAsEntity,
-        entity: UsedAsEntity
-    )
+        entity: UsedAsEntity,
+        data: D?
+    ): D?
         
         local castedTarget = CastToEntity(self, target)
         local castedEntity = CastToEntity(self, entity)
+
+        local entityMaps = self.entityMaps
+        local entityRecords = self.entityRecords
+
+        local map = entityMaps[castedTarget]
+
+        if not map then
+            entityMaps[castedTarget] = {}
+
+            map = entityMaps[castedTarget]
+        end
+
+        local record = entityRecords[castedEntity]
+        assert('Invalid entity: no record')
+
+        map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
+
+        if not data and typeof(target) == 'table' then
+            data = target.data
+        end
+        
+        if data then
+            self.data[castedTarget][castedEntity] = data
+        end
+
+        return data
+    end
+
+    function Registry.contains(
+        self: Registry,
+        target: UsedAsEntity,
+        ...: UsedAsEntity
+    ): boolean
+        
+        local castedTarget = CastToEntity(self, target)
+
+        local targetMap = self.entityMaps[castedTarget]
+        if not targetMap then return false end
+
+        for i = 1, select('#', ...) do
+
+            local entity = select(i, ...)
+            local castedEntity = CastToEntity(self, entity)
+            
+            local entityRecord = self.entityRecords[castedEntity]
+            assert(entityRecord, 'Invalid entity: no record')
+
+            local hasEntity = bit32.band(
+                targetMap[entityRecord.word] or 0,
+                entityRecord.mask
+            )
+
+            if hasEntity ~= entityRecord.mask then
+                return false
+            end
+        end
+
+        return true
     end
 end
 
@@ -116,6 +174,7 @@ type RegistryFields = {
     nextId: number,
     cachedPieces: { [Piece]: Entity },
     entityRecords: { [Entity]: Record },
+    entityMaps: { [Entity]: EntityMap },
     data: { [Entity]: DataColumn<EntityData> }
 }
 
@@ -124,7 +183,8 @@ type RegistryImpl = {
     New: () -> Registry,
     entity: (self: Registry) -> Entity,
     entityAt: (self: Registry, at: number) -> Entity,
-    add: (self: Registry, target: UsedAsEntity, entity: UsedAsEntity) -> ()
+    add: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity, data: D?) -> D?,
+    contains: (self: Registry, target: UsedAsEntity, entity: UsedAsEntity) -> boolean
 }
 
 return Registry
