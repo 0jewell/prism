@@ -13,9 +13,8 @@ local function Story(props)
 
     Iris:Connect(function()
         Iris.Window {'World'}
-
             Iris.Text {'Entity data:'}
-
+            
             Iris.CollapsingHeader {'Show'}
                 Iris.Indent()
                     for entity, entityData in pairs(world.data) do
@@ -33,21 +32,18 @@ local function Story(props)
             Iris.End()
 
             Iris.Separator()
-
             Iris.Text {'Entity map:'}
 
             Iris.CollapsingHeader {'Show'}
-                Iris.Indent() 
-                    for entity, map in pairs(world.entityMap) do
-                        local mappedEntities = {}
+                for entity, map in pairs(world.entityMap) do
+                    local mappedEntities = {}
 
-                        for e in pairs(map) do 
-                            table.insert(mappedEntities, e)
-                        end
-
-                        Iris.Text { `{entity} = [ {table.concat(mappedEntities, ', ')} ]` }
+                    for e in pairs(map) do 
+                        table.insert(mappedEntities, e)
                     end
-                Iris.End()
+
+                    Iris.Text { `{entity} = [ {table.concat(mappedEntities, ', ')} ]` }
+                end
             Iris.End()
         Iris.End()
     end)
