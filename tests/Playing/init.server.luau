@@ -21,3 +21,8 @@ if match(Registry, entity, QueryMap) then
 else
 	print('Entity does not match')
 end
+
+local e = Registry:entity()
+local health = Prism.Piece(100)
+
+Registry:add(e, health)
