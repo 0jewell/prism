@@ -14,6 +14,6 @@ return table.freeze {
     Query = Query.New,
     Piece = Piece.New,
 
-    mapQuery = Registry.mapQuery,
-    match = Registry.match
+    AssembleQueryMap = Registry.AssembleQueryMap,
+    CompareMapEntries = Registry.CompareMapEntries
 }

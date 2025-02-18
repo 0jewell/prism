@@ -6,6 +6,8 @@ export type QuerySettings<P...> = {
     priority: number?
 }
 
+export type Trait<P...> = (P...) -> ()
+
 export type Query<P...> = typeof(setmetatable({} :: queryFields<P...>, {} :: queryImpl<P...>))
 
 local JoinData;
@@ -62,8 +64,6 @@ function JoinData<config, target>(
 
     return target
 end
-
-type Trait<P...> = (P...) -> ()
 
 type queryFields<P...> = {
     traits: { [string]: Trait<P...> },
