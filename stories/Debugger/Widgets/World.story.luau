@@ -13,15 +13,13 @@ local function Story(props)
 
     Iris:Connect(function()
         Iris.Window {'Registry'}
-
             Iris.Text {'Entity data:'}
-
+            
             Iris.CollapsingHeader {'Show'}
                 Iris.Text {'TODO'}
             Iris.End()
 
             Iris.Separator()
-
             Iris.Text {'Entity map:'}
 
             Iris.CollapsingHeader {'Show'}
