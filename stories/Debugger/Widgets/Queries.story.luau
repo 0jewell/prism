@@ -12,16 +12,13 @@ local function Story(props)
     local pieces = { settings.query() }
 
     Iris:Connect(function()
-        
         Iris.Window {`Query {tostring(query)}`}
             Iris.MenuBar()
                 Iris.Text {'Available settings:'}
             Iris.End()
 
             Iris.Text {`Priority: {settings.priority}`}
-
             Iris.Separator()
-
             Iris.Text {'Querying data:'}
 
             Iris.CollapsingHeader {'Show'}
@@ -34,7 +31,6 @@ local function Story(props)
                     end
                     Iris.Text { table.concat(pieces, ', ')}
                 Iris.End()
-
             Iris.End()
         Iris.End()
     end)
