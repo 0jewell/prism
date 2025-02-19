@@ -1,6 +1,7 @@
-export type Piece<D = nil> = {
-	data: D
-}
+local Package = script.Parent
+local Types = require(Package.Common.Types)
+
+type Piece<D = unknown> = Types.Piece<D>
 
 local function Piece<D>(
     default: D?

@@ -31,17 +31,7 @@ local function QueryTest()
             local query = Query { query = function() return piece end }
             
             query:trait('trait', function() end)
-            expect(query.traits['trait']).to.be.ok()
-        end)
-
-        it('should not allow duplicated trait names', function()
-            local piece = Piece()
-            local query = Query { query = function() return piece end }
-
-            expect(function()
-                query:trait('trait', function() end)
-                query:trait('trait', function() end)
-            end).to.throw()
+            expect(query.traits[1]).to.be.ok()
         end)
     end)
 end

@@ -1,12 +1,8 @@
 --!nolint LocalShadow
-export type Cleaning =
-	Instance |
-    thread |
-	RBXScriptConnection |
-	() -> () |
-	{destroy: (unknown) -> ()} |
-	{Destroy: (unknown) -> ()} |
-	{ Cleaning }
+local Package = script.Parent
+local Types = require(Package.Types)
+
+type Cleaning = Types.Cleaning
 
 local function Clean(
     clean: Cleaning

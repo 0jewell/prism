@@ -1,14 +1,17 @@
+local Package = script.Parent
+local Types = require(Package.Common.Types)
+
 local DefaultSettings = {
     priority = 0
 }
-export type QuerySettings<P...> = {
-    query: () -> (P...),
-    priority: number?
-}
+type QuerySettings<P...> = Types.QuerySettings<P...>
 
-export type Trait<P...> = (P...) -> ()
+type Trait<P...> = Types.Trait<P...>
+type TraitRecord<P...> = Types.TraitRecord<P...>
 
-export type Query<P...> = typeof(setmetatable({} :: queryFields<P...>, {} :: queryImpl<P...>))
+type Data = Types.Data
+
+type Query<P... = ...any> = Types.Query<P...>
 
 local JoinData;
 
@@ -30,16 +33,15 @@ end
 function Query.trait<P...>(
     self: Query<P...>,
     name: string,
-    trait: (P...) -> ()
+    trait: (Data, P...) -> ()
 ): Query<P...>
 
-    local traits = self.traits
+    local record = {
+        trait = trait,
+        name = name
+    }
 
-    if traits[name] then
-        error('Traits names must not be repeated')
-    end
-
-    traits[name] = trait
+    table.insert(self.traits, record)
     return self
 end
 
@@ -64,16 +66,5 @@ function JoinData<config, target>(
 
     return target
 end
-
-type queryFields<P...> = {
-    traits: { [string]: Trait<P...> },
-    settings: QuerySettings<P...>
-}
-
-type queryImpl<P...> = {
-    __index: queryImpl<P...>,
-    New: (settings: QuerySettings<P...>) -> (Query<P...>),
-    trait: (self: Query<P...>, name: string, trait: (P...) -> ()) -> (Query<P...>)
-}
 
 return table.freeze(Query)

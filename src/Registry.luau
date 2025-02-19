@@ -1,35 +1,25 @@
 --!native
 --!optimize 2
---!nolint LocalUnused
 
 local Package = script.Parent
-
-local Query = require(Package.Query)
-type Query<Q...> = Query.Query<Q...>
-type Trait<P...> = Query.Trait<P...>
-
-local Piece = require(Package.Piece)
-type Piece<D = unknown> = Piece.Piece<D>
+local Types = require(Package.Common.Types)
 
 local Clean = require(Package.Common.Clean)
-type Cleaning = Clean.Cleaning
+type Cleaning = Types.Cleaning
 
-type Priority = number
-type Hash = string
+type Entity = Types.Entity
+type Piece<D = unknown> = Types.Piece<D>
 
-export type Entity = number
-export type UsedAsEntity<D = unknown> = Entity | Piece<D>
+type UsedAsEntity<D = unknown> = Types.UsedAsEntity<D>
 
-type Word = number
-type Mask = number
+type Query<Q... = ...any> = Types.Query<Q...>
 
-type EntityMap = { [Word]: Mask }
+type BitMap = Types.BitMap
+type Record = Types.Record
 
-type Record = { word: Word, mask: Mask }
+type EntityData<D = any | never> = Types.EntityData<D>
 
-type EntityData = any | never
-
-export type Registry = typeof(setmetatable({} :: RegistryFields, {} :: RegistryImpl))
+type Registry = Types.Registry
 
 local Registry = {}
 Registry.__index = Registry
@@ -39,11 +29,11 @@ function Registry.New(): Registry
         nextId = 1,
         cachedPieces = {},
         entityRecords = {},
-        entityMaps = {},
+        bitMaps = {},
         storage = {},
         queryStorage = {},
         queryMaps = {},
-        consumedTraits = {}
+        consumedQueries = {}
     }
 
     return setmetatable(self, Registry)
@@ -116,7 +106,7 @@ end
 local function AssembleQueryMap(
     registry: Registry,
     entities: { UsedAsEntity }
-): EntityMap
+): BitMap
 
     local map = {}
 
@@ -155,58 +145,97 @@ end
 
 local function CompareMapEntries(
     registry: Registry,
-    targetMap: EntityMap,
-    queryMap: EntityMap
+    targetMap: BitMap,
+    queryMap: BitMap
 ): boolean
 
     for word, bits in queryMap do
         if bit32.band(targetMap[word], bits) ~= bits then
-			return false
-		end
+            return false
+        end
     end
 
     return true
+end
+
+local function CallQueryRow(
+    registry: Registry,
+    row: { Query },
+    target: Entity
+)
+    local consumed = registry.consumedQueries
+    local BitMap = registry.bitMaps[target]
+
+    local function callTraitsFromQuery(
+        query: Query
+    )
+
+        for _, traitRecord in query.traits do
+            local cleaning = {}
+            local entityDatas = {}
+
+            local data = {
+                registry = registry,
+                entity = target
+            }
+
+            for _, entity in { query.settings.query() } do
+                local storedData = registry:ask(target, entity)
+    
+                table.insert(entityDatas, storedData)
+            end
+    
+            task.spawn(traitRecord.trait, data, unpack(entityDatas))
+    
+            consumed[query] = consumed[query] or {}
+            consumed[query][target] = cleaning
+        end
+    end
+
+    local function cleanupTraitsFromQuery(
+        query: Query
+    )
+        for _, traitRecord in query.traits do
+
+            local cleaning = consumed[query] and consumed[query][target]
+            if not cleaning then continue end
+
+            consumed[query][target] = nil
+
+            if not next(consumed[query]) then
+                consumed[query] = nil
+            end
+
+            Clean(cleaning)
+        end
+    end
+
+    local function tryMatching(
+        query: Query
+    )
+        if consumed[query] and consumed[query][target] then return end
+        
+        local queryMap = registry.queryMaps[query]
+        local canMatch = CompareMapEntries(registry, BitMap, queryMap)
+
+        return if canMatch
+            then callTraitsFromQuery(query)
+            else cleanupTraitsFromQuery(query)
+    end
+
+    for _, query in row do
+        tryMatching(query)
+    end
 end
 
 function Registry.match(
     self: Registry,
     target: UsedAsEntity
 )
-    local consumed = self.consumedTraits
-
     local castedTarget = CastToEntity(self, target)
-    local entityMap = self.entityMaps[castedTarget]
 
-    for _, row in self.queryStorage do
-        --// TODO: Clean this mess
-        for _, query in row do
-            local queryMap = self.queryMaps[query]
-            local canMatch = CompareMapEntries(self, entityMap, queryMap)
-
-            if canMatch then
-                for _, trait in query.traits do
-                    local scope, data = {}, { registry = self, entity = castedTarget }
-
-                    table.insert(scope, task.spawn(trait))
-
-                    consumed[trait] = consumed[trait] or {}
-                    consumed[trait][castedTarget] = scope
-                end
-            else
-                for _, trait in query.traits do
-                    local scope = consumed[trait] and consumed[trait][castedTarget]
-                    if not scope then continue end
-
-                    consumed[trait][castedTarget] = nil
-
-                    if not next(consumed[trait]) then
-                        consumed[trait] = nil
-                    end
-
-                    Clean(scope)
-                end
-            end
-        end
+    for priority, row in self.queryStorage do
+        CallQueryRow(self, row, castedTarget)
     end
 end
 
@@ -222,15 +251,15 @@ function Registry.add<D>(
     local castedTarget = CastToEntity(self, target)
     local castedEntity = CastToEntity(self, entity)
 
-    local entityMaps = self.entityMaps
+    local bitMaps = self.bitMaps
     local entityRecords = self.entityRecords
 
-    local map = entityMaps[castedTarget]
+    local map = bitMaps[castedTarget]
 
     if not map then
-        entityMaps[castedTarget] = {}
+        bitMaps[castedTarget] = {}
 
-        map = entityMaps[castedTarget]
+        map = bitMaps[castedTarget]
     end
 
     local record = entityRecords[castedEntity]
@@ -249,7 +278,7 @@ function Registry.add<D>(
     end
     
     if data then
-        storage[castedTarget][castedEntity] = data
+        storage[castedTarget][castedEntity] = { data = data }
     end
 
     self:match(castedTarget)
@@ -265,7 +294,7 @@ function Registry.contains(
     
     local castedTarget = CastToEntity(self, target)
 
-    local targetMap = self.entityMaps[castedTarget]
+    local targetMap = self.bitMaps[castedTarget]
     if not targetMap then return false end
 
     for i = 1, select('#', ...) do
@@ -290,7 +319,7 @@ function Registry.ask<D>(
     self: Registry,
     target: UsedAsEntity,
     entity: UsedAsEntity<D>
-): D?
+): EntityData<D>?
 
     local castedTarget = CastToEntity(self, target)
 
@@ -324,29 +353,6 @@ local function unpackPair(
 
     return relation, target
 end
-
-type RegistryFields = {
-    nextId: number,
-    cachedPieces: { [Piece]: Entity },
-    entityRecords: { [Entity]: Record },
-    entityMaps: { [Entity]: EntityMap },
-    storage: { [Entity]: { [Entity]: EntityData } },
-    queryStorage: { [Priority]: { Query<...any> } },
-    queryMaps: { [Query<...any>]: EntityMap },
-    consumedTraits: { [Trait<...any>]: { [Entity]: Cleaning } }
-}
-
-type RegistryImpl = {
-    __index: RegistryImpl,
-    New: () -> Registry,
-    entity: (self: Registry) -> Entity,
-    entityAt: (self: Registry, at: number) -> Entity,
-    include: (self: Registry, queries: { Query<...any> }) -> (),
-    match: (self: Registry, target: UsedAsEntity) -> (),
-    add: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>, data: D?) -> D?,
-    contains: (self: Registry, target: UsedAsEntity, ...UsedAsEntity) -> boolean,
-    ask: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>) -> D?
-}
 
 return table.freeze {
     New = Registry.New,
