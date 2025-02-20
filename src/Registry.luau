@@ -253,8 +253,6 @@ function Registry.add<D>(
     
     local castedEntity = CastToEntity(self, entity)
     local castedPiece = CastToEntity(self, piece)
-    print('Entity:', entity, 'Casted:', castedEntity)
-    print('Piece:', piece, 'Casted:', castedPiece)
 
     local bitMaps = self.bitMaps
     local entityRecords = self.entityRecords
