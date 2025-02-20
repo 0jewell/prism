@@ -4,37 +4,31 @@ local Piece = Prism.Piece
 local Registry = Prism.Registry()
 
 local Piece1, Piece2 = Piece(10), Piece(5)
+local Query = Prism.Query { query = function() return Piece1, Piece2 end }
 
-local totalApplications = 0
+Query:trait('Test', function(data, piece1, piece2)
+	print('Trait applied')
 
-local query1 = Prism.Query { query = function() return Piece1 end }
+	local thread; thread = task.spawn(function()
+		local seconds = 1
 
-for i = 1, 5 do
-	query1:trait('Test', function(data, piece1)
-		print(`(Query 1) Trait {i}: applied`)
-		totalApplications += 1
+		while task.wait(1) do
+			print(seconds, 'seconds has passed!')
+			seconds += 1
+		end
 	end)
-end
 
-local query2 = Prism.Query { query = function() return Piece1, Piece2 end }
-
-for i = 1, 5 do
-	query2:trait('Test', function(data, piece1, piece2)
-		print(`(Query 2) Trait {i}: applied`)
-
-		totalApplications += 1
-	end)
-end
+	table.insert(data.cleaning, thread)
+end)
 
 do
-	Registry:include { query1, query2 }
+	Registry:include { Query }
 
-	for i = 1, 100 do
-		local entity = Registry:entity()
+	local entity = Registry:entity()
+	Registry:add(entity, Piece1)
+	Registry:add(entity, Piece2)
 
-		Registry:add(entity, Piece1)
-		Registry:add(entity, Piece2)
-	end
+	task.wait(3)
 
-	print('Total Applied:', totalApplications)
+	Registry:delete(entity)
 end

@@ -39,7 +39,8 @@ export type TraitRecord<P...> = {
 
 export type Data = {
     registry: Registry,
-    entity: Entity
+    entity: Entity,
+    cleaning: { Cleaning }
 }
 
 export type Query<P... = ...any> = typeof(setmetatable({} :: queryFields<P...>, {} :: queryImpl<P...>))
@@ -76,6 +77,8 @@ type RegistryImpl = {
     include: (self: Registry, queries: { Query }) -> (),
     match: (self: Registry, target: UsedAsEntity) -> (),
     add: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>, data: D?) -> D?,
+    remove: (self: Registry, entity: UsedAsEntity, piece: UsedAsEntity) -> (),
+    delete: (self: Registry, entity: UsedAsEntity) -> (),
     contains: (self: Registry, target: UsedAsEntity, ...UsedAsEntity) -> boolean,
     ask: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>) -> EntityData<D>?
 }

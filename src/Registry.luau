@@ -150,7 +150,7 @@ local function CompareMapEntries(
 ): boolean
 
     for word, bits in queryMap do
-        if bit32.band(targetMap[word], bits) ~= bits then
+        if bit32.band(targetMap[word] or 0, bits) ~= bits then
             return false
         end
     end
@@ -161,14 +161,15 @@ end
 local function CallQueryRow(
     registry: Registry,
     row: { Query },
-    target: Entity
+    entity: Entity
 )
     local consumed = registry.consumedQueries
-    local BitMap = registry.bitMaps[target]
+    local BitMap = registry.bitMaps[entity]
 
     local function callTraitsFromQuery(
         query: Query
     )
+        if consumed[query] and consumed[query][entity] then return end
 
         for _, traitRecord in query.traits do
             local cleaning = {}
@@ -176,19 +177,24 @@ local function CallQueryRow(
 
             local data = {
                 registry = registry,
-                entity = target
+                entity = entity,
+                cleaning = cleaning
             }
 
-            for _, entity in { query.settings.query() } do
-                local storedData = registry:ask(target, entity)
+            for _, piece in { query.settings.query() } do
+                local storedData = registry:ask(entity, piece)
     
                 table.insert(entityDatas, storedData)
             end
     
-            task.spawn(traitRecord.trait, data, unpack(entityDatas))
+            local thread = task.spawn(
+                traitRecord.trait,
+                data, unpack(entityDatas)
+            )
+            table.insert(cleaning, thread)
     
             consumed[query] = consumed[query] or {}
-            consumed[query][target] = cleaning
+            consumed[query][entity] = cleaning
         end
     end
 
@@ -196,11 +202,10 @@ local function CallQueryRow(
         query: Query
     )
         for _, traitRecord in query.traits do
-
-            local cleaning = consumed[query] and consumed[query][target]
+            local cleaning = consumed[query] and consumed[query][entity]
             if not cleaning then continue end
 
-            consumed[query][target] = nil
+            consumed[query][entity] = nil
 
             if not next(consumed[query]) then
                 consumed[query] = nil
@@ -213,8 +218,6 @@ local function CallQueryRow(
     local function tryMatching(
         query: Query
     )
-        if consumed[query] and consumed[query][target] then return end
-        
         local queryMap = registry.queryMaps[query]
         local canMatch = CompareMapEntries(registry, BitMap, queryMap)
 
@@ -230,84 +233,151 @@ end
 
 function Registry.match(
     self: Registry,
-    target: UsedAsEntity
+    entity: UsedAsEntity
 )
-    local castedTarget = CastToEntity(self, target)
+    local castedEntity = CastToEntity(self, entity)
 
     for priority, row in self.queryStorage do
-        CallQueryRow(self, row, castedTarget)
+        CallQueryRow(self, row, castedEntity)
     end
 end
 
 function Registry.add<D>(
     self: Registry,
-    target: UsedAsEntity,
-    entity: UsedAsEntity<D>,
+    entity: UsedAsEntity,
+    piece: UsedAsEntity<D>,
     data: D?
 ): D?
 
-    if self:contains(entity, target) then return end
+    if self:contains(entity, piece) then return end
     
-    local castedTarget = CastToEntity(self, target)
     local castedEntity = CastToEntity(self, entity)
+    local castedPiece = CastToEntity(self, piece)
+    print('Entity:', entity, 'Casted:', castedEntity)
+    print('Piece:', piece, 'Casted:', castedPiece)
 
     local bitMaps = self.bitMaps
     local entityRecords = self.entityRecords
 
-    local map = bitMaps[castedTarget]
-
-    if not map then
-        bitMaps[castedTarget] = {}
-
-        map = bitMaps[castedTarget]
+    if not bitMaps[castedEntity] then
+        bitMaps[castedEntity] = {}
     end
 
-    local record = entityRecords[castedEntity]
+    local map = bitMaps[castedEntity]
+
+    local record = entityRecords[castedPiece]
     assert('Invalid entity: no record')
 
     map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
 
-    if not data and typeof(entity) == 'table' then
-        data = entity.data
+    if not data and typeof(piece) == 'table' then
+        data = piece.data
     end
 
     local storage = self.storage
 
-    if not storage[castedTarget] then
-        storage[castedTarget] = {}
-    end
-    
-    if data then
-        storage[castedTarget][castedEntity] = { data = data }
+    if not storage[castedEntity] then
+        storage[castedEntity] = {}
     end
 
-    self:match(castedTarget)
+    local entityStorage = storage[castedEntity]
+    
+    if data then
+        entityStorage[castedPiece] = { data = data }
+    end
+
+    self:match(castedEntity)
 
     return data
 end
 
+function Registry.remove<D>(
+    self: Registry,
+    entity: UsedAsEntity,
+    piece: UsedAsEntity<D>
+)
+    local castedEntity = CastToEntity(self, entity)
+    local castedPiece = CastToEntity(self, piece)
+
+    local bitMaps = self.bitMaps
+    local entityRecords = self.entityRecords
+
+    local map = bitMaps[castedEntity]
+    if not map then return end
+
+    local record = entityRecords[castedPiece]
+        or error('Invalid entity: no record')
+
+    map[record.word] = bit32.band(map[record.word] or 0, bit32.bnot(record.mask))
+
+    if map[record.word] == 0 then
+        map[record.word] = nil
+    end
+
+    local storage = self.storage
+
+    local entityStorage = storage[castedEntity]
+    if not entityStorage then return end
+
+    local storedData = entityStorage[castedPiece]
+    if storedData then
+        Clean(storedData)
+        entityStorage[castedPiece] = nil
+    end
+
+    self:match(castedEntity)
+end
+
+function Registry.delete(
+    self: Registry,
+    entity: UsedAsEntity
+)
+    local castedEntity = CastToEntity(self, entity)
+
+    local bitMaps = self.bitMaps
+    local storage = self.storage
+
+    if not bitMaps[castedEntity] then return end
+
+    local entityStorage = storage[castedEntity]
+
+    if entityStorage then
+        for piece in entityStorage do
+            self:remove(entity, piece)
+        end
+
+        storage[castedEntity] = nil
+    end
+
+    bitMaps[castedEntity] = nil
+
+    if typeof(entity) == 'table' then
+        self.cachedPieces[entity] = nil
+    end
+end
+
 function Registry.contains(
     self: Registry,
-    target: UsedAsEntity,
+    entity: UsedAsEntity,
     ...: UsedAsEntity
 ): boolean
     
-    local castedTarget = CastToEntity(self, target)
+    local castedEntity = CastToEntity(self, entity)
 
-    local targetMap = self.bitMaps[castedTarget]
-    if not targetMap then return false end
+    local entityMap = self.bitMaps[castedEntity]
+    if not entityMap then return false end
 
     for i = 1, select('#', ...) do
 
-        local entity = select(i, ...)
-        local castedEntity = CastToEntity(self, entity)
+        local piece = select(i, ...)
+        local castedPiece = CastToEntity(self, piece)
         
-        local entityRecord = self.entityRecords[castedEntity]
+        local entityRecord = self.entityRecords[castedPiece]
         assert(entityRecord, 'Invalid entity: no record')
 
-        local hasEntity = bit32.band(targetMap[entityRecord.word] or 0, entityRecord.mask)
+        local hasPiece = bit32.band(entityMap[entityRecord.word] or 0, entityRecord.mask)
 
-        if hasEntity ~= entityRecord.mask then
+        if hasPiece ~= entityRecord.mask then
             return false
         end
     end
@@ -317,21 +387,21 @@ end
 
 function Registry.ask<D>(
     self: Registry,
-    target: UsedAsEntity,
-    entity: UsedAsEntity<D>
+    entity: UsedAsEntity,
+    piece: UsedAsEntity<D>
 ): EntityData<D>?
 
-    local castedTarget = CastToEntity(self, target)
+    local castedEntity = CastToEntity(self, entity)
 
-    local targetData = self.storage[castedTarget]
+    local targetData = self.storage[castedEntity]
     assert(
         targetData,
         'Invalid entity: does not have data. Check using contains first'
     )
 
-    local castedEntity = CastToEntity(self, entity)
+    local castedPiece = CastToEntity(self, piece)
 
-    return targetData[castedEntity]
+    return targetData[castedPiece]
 end
 
 local FACTOR = 2 ^ 26
