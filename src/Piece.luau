@@ -1,15 +1,7 @@
-export type Entity = number
-export type None = string
+local Package = script.Parent
+local Types = require(Package.Common.Types)
 
-export type usedAsEntity<D> = Entity | Piece<D>
-
-export type onAddFunction = <D>(
-    entity: Entity, target: Entity, data: unknown
-) -> ()
-
-export type Piece<D = unknown> = {
-	data: D
-}
+type Piece<D = unknown> = Types.Piece<D>
 
 local function Piece<D>(
     default: D?
@@ -20,26 +12,6 @@ local function Piece<D>(
     return self
 end
 
-type Figure<D = nil> = { data: D }
-type FigureBuilder<D = nil> = { New: (data: D) -> Figure<D> }
-
-local function from<D>(
-    state: FigureBuilder<D>,
-    default: D
-): () -> Figure<D>
-
-    return function()
-        return state.New(default)
-    end
-end
-
-local component = Piece()
-local onAdd = Piece() :: Piece<onAddFunction>
-
 return table.freeze {
-    New = Piece,
-    from = from,
-
-    component = component,
-    onAdd = onAdd
+    New = Piece
 }

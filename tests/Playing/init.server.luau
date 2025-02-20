@@ -1,23 +1,34 @@
-local Packages = game.ReplicatedStorage.Packages
-local Prism = require(Packages.Prism)
+local Prism = require(game.ReplicatedStorage.Packages.Prism)
+local Piece = Prism.Piece
 
-local on_add = Prism.on_add
-local pair = Prism.pair
+local Registry = Prism.Registry()
 
-local World = Prism.World()
+local Piece1, Piece2 = Piece(10), Piece(5)
+local Query = Prism.Query { query = function() return Piece1, Piece2 end }
 
-local e = World:entity()
-local e2 = World:entity()
-local e3 = World:entity()
+Query:trait('Test', function(data, piece1, piece2)
+	print('Trait applied')
 
-World:add(e, on_add, function(entity, target, data)
-    print(target, 'added', data, 'to', entity)
+	local thread; thread = task.spawn(function()
+		local seconds = 1
+
+		while task.wait(1) do
+			print(seconds, 'seconds has passed!')
+			seconds += 1
+		end
+	end)
+
+	table.insert(data.cleaning, thread)
 end)
 
-World:add(e, e2, 'data')
-World:add(e, e3, 'more data')
+do
+	Registry:include { Query }
 
-local Eats = World:entity()
-local Apples = World:entity()
+	local entity = Registry:entity()
+	Registry:add(entity, Piece1)
+	Registry:add(entity, Piece2)
 
-World:add(e, pair(Eats, Apples), 10)
+	task.wait(3)
+
+	Registry:delete(entity)
+end
