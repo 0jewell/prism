@@ -244,6 +244,19 @@ function Registry.match(
     end
 end
 
+local function TransformData(data)
+    assert(typeof(data) == 'table', 'Data must be a table')
+
+    for index, value in data do
+        if typeof(value) == 'function' then
+            data[index] = value()
+
+        elseif typeof(value) == 'table' then
+            TransformData(value)
+        end
+    end
+end
+
 function Registry.add<D>(
     self: Registry,
     entity: UsedAsEntity,
@@ -283,7 +296,9 @@ function Registry.add<D>(
 
         if default then
             if typeof(default) == 'table' then
-                data = JoinData(default, {})
+                local newData = JoinData(default, {})
+                TransformData(newData)
+                data = newData
             else
                 data = default
             end

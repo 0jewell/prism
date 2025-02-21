@@ -12,13 +12,15 @@ local function Piece<D>(
     return self
 end
 
-local function from<class>(
-    constructor: (...any) -> class,
-    default: any
-): () -> class
+local function from(
+    constructor: (...any) -> any,
+    ...: any
+): any
+
+    local default = { ... }
 
     return function()
-        return constructor(default)
+        return constructor(unpack(default))
     end
 end
 
