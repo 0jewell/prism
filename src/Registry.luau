@@ -4,6 +4,8 @@
 local Package = script.Parent
 local Types = require(Package.Common.Types)
 
+local JoinData = require(Package.Common.JoinData)
+
 local Clean = require(Package.Common.Clean)
 type Cleaning = Types.Cleaning
 
@@ -268,10 +270,6 @@ function Registry.add<D>(
 
     map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
 
-    if not data and typeof(piece) == 'table' then
-        data = piece.data
-    end
-
     local storage = self.storage
 
     if not storage[castedEntity] then
@@ -280,6 +278,18 @@ function Registry.add<D>(
 
     local entityStorage = storage[castedEntity]
     
+    if not data and typeof(piece) == 'table' then
+        local default = piece.data
+
+        if default then
+            if typeof(default) == 'table' then
+                data = JoinData(default, {})
+            else
+                data = default
+            end
+        end
+    end
+
     if data then
         entityStorage[castedPiece] = { data = data }
     end

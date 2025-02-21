@@ -1,6 +1,8 @@
 local Package = script.Parent
 local Types = require(Package.Common.Types)
 
+local JoinData = require(Package.Common.JoinData)
+
 local DefaultSettings = {
     priority = 0
 }
@@ -12,8 +14,6 @@ type TraitRecord<P...> = Types.TraitRecord<P...>
 type Data = Types.Data
 
 type Query<P... = ...any> = Types.Query<P...>
-
-local JoinData;
 
 local Query = {}
 Query.__index = Query
@@ -45,26 +45,7 @@ function Query.trait<P...>(
     return self
 end
 
-function JoinData<config, target>(
-    config: config,
-    target: target
-): config & target
-
-    assert(type(target) == 'table', 'Target must be a table.')
-    assert(type(config) == 'table', 'Config  must be a table.')
-
-    for index, default in pairs(config) do
-
-        if not target[index] then
-            target[index] = default
-        end
-
-        if typeof(config[index]) == 'table' then
-            target[index] = JoinData(config[index], target[index])
-        end
-    end
-
-    return target
-end
-
-return table.freeze(Query)
+return table.freeze {
+    New = Query.New,
+    JoinData = JoinData
+}

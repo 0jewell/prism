@@ -12,6 +12,17 @@ local function Piece<D>(
     return self
 end
 
+local function from<class>(
+    constructor: (...any) -> class,
+    default: any
+): () -> class
+
+    return function()
+        return constructor(default)
+    end
+end
+
 return table.freeze {
-    New = Piece
+    New = Piece,
+    from = from
 }

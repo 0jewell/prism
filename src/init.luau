@@ -1,5 +1,8 @@
 local Types = require(script.Common.Types)
 
+local JoinData = require(script.Common.JoinData)
+local Clean = require(script.Common.Clean)
+
 local Registry = require(script.Registry)
 export type Registry = Types.Registry
 export type Entity = Types.Entity
@@ -18,6 +21,11 @@ return table.freeze {
     Query = Query.New,
     Piece = Piece.New,
 
+    from = Piece.from,
+
     AssembleQueryMap = Registry.AssembleQueryMap,
-    CompareMapEntries = Registry.CompareMapEntries
+    CompareMapEntries = Registry.CompareMapEntries,
+
+    JoinData = JoinData,
+    Clean = Clean
 }
