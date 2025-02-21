@@ -75,12 +75,12 @@ type RegistryImpl = {
     entity: (self: Registry) -> Entity,
     entityAt: (self: Registry, at: number) -> Entity,
     include: (self: Registry, queries: { Query }) -> (),
-    match: (self: Registry, target: UsedAsEntity) -> (),
-    add: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>, data: D?) -> D?,
+    match: (self: Registry, entity: UsedAsEntity) -> (),
+    add: <D>(self: Registry, entity: UsedAsEntity, piece: UsedAsEntity<D>, data: D?) -> D?,
     remove: (self: Registry, entity: UsedAsEntity, piece: UsedAsEntity) -> (),
     delete: (self: Registry, entity: UsedAsEntity) -> (),
-    contains: (self: Registry, target: UsedAsEntity, ...UsedAsEntity) -> boolean,
-    ask: <D>(self: Registry, target: UsedAsEntity, entity: UsedAsEntity<D>) -> EntityData<D>?
+    contains: (self: Registry, entity: UsedAsEntity, ...UsedAsEntity) -> boolean,
+    ask: <D>(self: Registry, entity: UsedAsEntity, piece: UsedAsEntity<D>) -> EntityData<D>?
 }
 
 return {}
