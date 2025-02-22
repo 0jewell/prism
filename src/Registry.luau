@@ -29,6 +29,7 @@ Registry.__index = Registry
 function Registry.New(): Registry
     local self = {
         nextId = 1,
+        size = 0,
         cachedPieces = {},
         entityRecords = {},
         bitMaps = {},
@@ -79,6 +80,7 @@ function Registry.entityAt(
     local record = GenerateRecord(at)
     self.entityRecords[at] = record
 
+    self.size += 1
     return at
 end
 
@@ -105,6 +107,20 @@ local function CastToEntity<D>(
     return castedEntity
 end
 
+local function append_record_on_map(
+    map: BitMap,
+    record: Record
+)
+    map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
+end
+
+local function unappend_record_on_map(
+    map: BitMap,
+    record: Record
+)
+    map[record.word] = bit32.band(map[record.word] or 0, bit32.bnot(record.mask))
+end
+
 local function AssembleQueryMap(
     registry: Registry,
     entities: { UsedAsEntity }
@@ -118,7 +134,7 @@ local function AssembleQueryMap(
         local record = registry.entityRecords[castedEntity]
             or error('Invalid entity: no record')
 
-        map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
+        append_record_on_map(map, record)
     end
 
     return map
@@ -244,7 +260,7 @@ function Registry.match(
     end
 end
 
-local function TransformData(data)
+local function transform_data<target>(data: target): target
     assert(typeof(data) == 'table', 'Data must be a table')
 
     for index, value in data do
@@ -252,9 +268,11 @@ local function TransformData(data)
             data[index] = value()
 
         elseif typeof(value) == 'table' then
-            TransformData(value)
+            transform_data(value)
         end
     end
+
+    return data
 end
 
 function Registry.add<D>(
@@ -279,9 +297,9 @@ function Registry.add<D>(
     local map = bitMaps[castedEntity]
 
     local record = entityRecords[castedPiece]
-    assert('Invalid entity: no record')
+        or error('Invalid entity: no record')
 
-    map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
+    append_record_on_map(map, record)
 
     local storage = self.storage
 
@@ -297,8 +315,7 @@ function Registry.add<D>(
         if default then
             if typeof(default) == 'table' then
                 local newData = JoinData(default, {})
-                TransformData(newData)
-                data = newData
+                data = transform_data(newData)
             else
                 data = default
             end
@@ -331,7 +348,7 @@ function Registry.remove<D>(
     local record = entityRecords[castedPiece]
         or error('Invalid entity: no record')
 
-    map[record.word] = bit32.band(map[record.word] or 0, bit32.bnot(record.mask))
+    unappend_record_on_map(map, record)
 
     if map[record.word] == 0 then
         map[record.word] = nil
@@ -343,6 +360,7 @@ function Registry.remove<D>(
     if not entityStorage then return end
 
     local storedData = entityStorage[castedPiece]
+    
     if storedData then
         Clean(storedData)
         entityStorage[castedPiece] = nil
@@ -377,6 +395,8 @@ function Registry.delete(
     if typeof(entity) == 'table' then
         self.cachedPieces[entity] = nil
     end
+    
+    self.size -= 1
 end
 
 function Registry.contains(
@@ -416,15 +436,15 @@ function Registry.ask<D>(
 
     local castedEntity = CastToEntity(self, entity)
 
-    local targetData = self.storage[castedEntity]
+    local entityData = self.storage[castedEntity]
     assert(
-        targetData,
+        entityData,
         'Invalid entity: does not have data. Check using contains first'
     )
 
     local castedPiece = CastToEntity(self, piece)
 
-    return targetData[castedPiece]
+    return entityData[castedPiece]
 end
 
 local FACTOR = 2 ^ 26

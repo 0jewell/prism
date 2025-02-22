@@ -6,6 +6,7 @@ local Clean = require(script.Common.Clean)
 local Registry = require(script.Registry)
 export type Registry = Types.Registry
 export type Entity = Types.Entity
+export type EntityData = Types.EntityData
 
 local Query = require(script.Query)
 export type Query<P... = ...any> = Types.Query<P...>

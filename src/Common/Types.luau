@@ -1,10 +1,12 @@
 export type Cleaning =
 	Instance |
+    
 	RBXScriptConnection |
 	() -> () |
 	{destroy: (unknown) -> ()} |
 	{Destroy: (unknown) -> ()} |
-	{ Cleaning }
+	{ Cleaning } |
+    thread
 
 export type Piece<D = unknown> = {
 	data: D
@@ -59,6 +61,7 @@ export type Registry = typeof(setmetatable({} :: RegistryFields, {} :: RegistryI
 
 type RegistryFields = {
     nextId: number,
+    size: number,
     cachedPieces: { [Piece]: Entity },
     entityRecords: { [Entity]: Record },
     bitMaps: { [Entity]: BitMap },
