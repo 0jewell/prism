@@ -7,6 +7,9 @@ local function Story(props)
 
     local piece = Prism.Piece()
     local query = Prism.Query { query = function() return piece end }
+    :trait('AddHealthBar', function() end)
+    :trait('UpdateHealthBar', function() end)
+    :trait('UpdateScreenState', function() end)
 
     local settings = query.settings
     local pieces = { settings.query() }
@@ -19,7 +22,7 @@ local function Story(props)
 
             Iris.Text {`Priority: {settings.priority}`}
             Iris.Separator()
-            Iris.Text {'Querying data:'}
+            Iris.Text {'Querying pieces:'}
 
             Iris.CollapsingHeader {'Show'}
                 Iris.Text {'Total pieces:' .. #pieces}
@@ -31,6 +34,15 @@ local function Story(props)
                     end
                     Iris.Text { table.concat(pieces, ', ')}
                 Iris.End()
+            Iris.End()
+
+            Iris.Separator()
+            Iris.Text {'Traits:'}
+
+            Iris.CollapsingHeader {'Show'}
+                for _, record in ipairs(query.traits) do
+                    Iris.Text { '* ' .. record.name }
+                end
             Iris.End()
         Iris.End()
     end)
