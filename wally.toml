@@ -1,7 +1,7 @@
 [package]
 name = "0jewell/prism"
-version = "0.1.0"
-description = "Library based on Celesta"
+version = "1.0.1"
+description = "A ECS library based on reactive systems"
 license = "MIT"
 authors = ["0jewell"]
 registry = "https://github.com/UpliftGames/wally-index"

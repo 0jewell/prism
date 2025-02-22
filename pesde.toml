@@ -1,13 +1,15 @@
 name = "0jewell/prism"
-version = "0.1.0"
-description = "Library based on Celesta"
+version = "1.0.1"
+description = "A ECS library based on reactive systems"
 authors = ["0jewell"]
 repository = "https://github.com/0jewell/Prism"
 license = "MIT"
-includes = ["src", "src/*", "default.project.json", "pesde.toml", "pesde.lock"]
+includes = ["src/**/*.luau", "README.md", "LICENSE", "pesde.toml"]
 
 [target]
 environment = "roblox"
+lib = "src/init.luau"
+build_files = ["src"]
 
 [wally_indices]
 default = "https://github.com/UpliftGames/wally-index"
