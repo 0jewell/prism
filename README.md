@@ -1,2 +1,2 @@
 # Prism
-A ECS library based on Celesta
+A lightweight and efficient ECS library that uses reactive queries to manage entity behavior dynamically.
