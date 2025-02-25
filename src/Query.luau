@@ -1,7 +1,7 @@
 local Package = script.Parent
 local Types = require(Package.Common.Types)
 
-local JoinData = require(Package.Common.JoinData)
+local Data = require(Package.Common.Data)
 
 local DefaultSettings = {
     priority = 0
@@ -22,7 +22,7 @@ function Query.New<P...>(
     settings: QuerySettings<P...>
 ): Query<P...>
 
-    local mergedSettings = JoinData(DefaultSettings, settings)
+    local mergedSettings = Data.merge(DefaultSettings, settings)
     assert(mergedSettings.query, 'Missing query setting')
 
     local self = { traits = {}, settings = mergedSettings }
