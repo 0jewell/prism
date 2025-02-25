@@ -1,10 +1,11 @@
 --!native
 --!optimize 2
-
 local Package = script.Parent
 local Types = require(Package.Common.Types)
 
-local JoinData = require(Package.Common.JoinData)
+local Record = require(script.Record)
+
+local Data = require(Package.Common.Data)
 
 local Clean = require(Package.Common.Clean)
 type Cleaning = Types.Cleaning
@@ -49,21 +50,6 @@ function Registry.entity(
     return self:entityAt(self.nextId)
 end
 
-function GenerateRecord(
-    entity: Entity
-): Record
-
-    local wordIndex = math.floor((entity - 1) / 64) + 1
-    local bitPosition = (entity - 1) % 64
-
-    local record = {
-        word = wordIndex,
-        mask = bit32.lshift(1, bitPosition)
-    }
-
-    return record
-end
-
 function Registry.entityAt(
     self: Registry,
     at: number
@@ -77,7 +63,7 @@ function Registry.entityAt(
         self.nextId = at + 1
     end
 
-    local record = GenerateRecord(at)
+    local record = Record.generate(at)
     self.entityRecords[at] = record
 
     self.size += 1
@@ -107,20 +93,6 @@ local function CastToEntity<D>(
     return castedEntity
 end
 
-local function append_record_on_map(
-    map: BitMap,
-    record: Record
-)
-    map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
-end
-
-local function unappend_record_on_map(
-    map: BitMap,
-    record: Record
-)
-    map[record.word] = bit32.band(map[record.word] or 0, bit32.bnot(record.mask))
-end
-
 local function AssembleQueryMap(
     registry: Registry,
     entities: { UsedAsEntity }
@@ -134,7 +106,7 @@ local function AssembleQueryMap(
         local record = registry.entityRecords[castedEntity]
             or error('Invalid entity: no record')
 
-        append_record_on_map(map, record)
+        Record.append(map, record)
     end
 
     return map
@@ -260,21 +232,6 @@ function Registry.match(
     end
 end
 
-local function transform_data<target>(data: target): target
-    assert(typeof(data) == 'table', 'Data must be a table')
-
-    for index, value in data do
-        if typeof(value) == 'function' then
-            data[index] = value()
-
-        elseif typeof(value) == 'table' then
-            transform_data(value)
-        end
-    end
-
-    return data
-end
-
 function Registry.add<D>(
     self: Registry,
     entity: UsedAsEntity,
@@ -299,7 +256,7 @@ function Registry.add<D>(
     local record = entityRecords[castedPiece]
         or error('Invalid entity: no record')
 
-    append_record_on_map(map, record)
+    Record.append(map, record)
 
     local storage = self.storage
 
@@ -309,16 +266,14 @@ function Registry.add<D>(
 
     local entityStorage = storage[castedEntity]
     
-    if not data and typeof(piece) == 'table' then
+    if not data and typeof(piece) == 'table' and piece.data then
         local default = piece.data
-
-        if default then
-            if typeof(default) == 'table' then
-                local newData = JoinData(default, {})
-                data = transform_data(newData)
-            else
-                data = default
-            end
+    
+        if typeof(default) == 'table' then
+            local newData = Data.merge(default, {})
+            data = Data.transform(newData)
+        else
+            data = default
         end
     end
 
@@ -348,11 +303,7 @@ function Registry.remove<D>(
     local record = entityRecords[castedPiece]
         or error('Invalid entity: no record')
 
-    unappend_record_on_map(map, record)
-
-    if map[record.word] == 0 then
-        map[record.word] = nil
-    end
+    Record.unappend(map, record)
 
     local storage = self.storage
 

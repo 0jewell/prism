@@ -1,6 +1,6 @@
 local Types = require(script.Common.Types)
 
-local JoinData = require(script.Common.JoinData)
+local Data = require(script.Common.Data)
 local Clean = require(script.Common.Clean)
 
 local Registry = require(script.Registry)
@@ -27,6 +27,6 @@ return table.freeze {
     AssembleQueryMap = Registry.AssembleQueryMap,
     CompareMapEntries = Registry.CompareMapEntries,
 
-    JoinData = JoinData,
+    MergeData = Data.merge,
     Clean = Clean
 }

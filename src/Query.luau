@@ -45,7 +45,4 @@ function Query.trait<P...>(
     return self
 end
 
-return table.freeze {
-    New = Query.New,
-    JoinData = JoinData
-}
+return table.freeze(Query)
