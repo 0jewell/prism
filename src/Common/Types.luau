@@ -1,6 +1,5 @@
 export type Cleaning =
 	Instance |
-    
 	RBXScriptConnection |
 	() -> () |
 	{destroy: (unknown) -> ()} |
