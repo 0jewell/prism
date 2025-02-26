@@ -13,18 +13,18 @@
 				"Prism": {
 					"$path": "default.project.json"
 				}
-			},
-
-			"Stories": {
-                "$path": "stories"
-            }
+			}
 		},
 
 		"ServerScriptService": {
 			"$className": "ServerScriptService",
 			
 			"Tests": {
-				"$path": "tests"
+				"$path": "tests",
+
+				"Examples": {
+					"$path": "examples"
+				}
 			}
 		}
 	}
