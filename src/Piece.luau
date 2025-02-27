@@ -1,6 +1,6 @@
 local Package = script.Parent
-local Types = require(Package.Common.Types)
 
+local Types = require(Package.Common.Types)
 type Piece<D = unknown> = Types.Piece<D>
 
 local function Piece<D>(
@@ -12,11 +12,7 @@ local function Piece<D>(
     return self
 end
 
-local function from(
-    constructor: (...any) -> any,
-    ...: any
-): any
-
+local function from(constructor, ...): any
     local default = { ... }
 
     return function()

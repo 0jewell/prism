@@ -2,15 +2,14 @@
 --// from: https://github.com/dphfox/Fusion/blob/main/src/Memory/doCleanup.luau
 
 local Package = script.Parent
-local Types = require(Package.Types)
 
+local Types = require(Package.Types)
 type Cleaning = Types.Cleaning
 
 local alreadyDestroying: { [Cleaning]: true } = {}
 
-local function Clean(
-	cleaning: Cleaning
-): ()
+local function Clean(cleaning: Cleaning): ()
+	
 	if alreadyDestroying[cleaning] then
 		return error('Destroying twice')
 	end

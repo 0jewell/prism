@@ -20,10 +20,7 @@ local function MergeData<config, target>(
     return target
 end
 
-local function Transform<target>(
-    data: target
-): target
-
+local function Transform<target>(data: target): target
     assert(typeof(data) == 'table', 'Data must be a table')
 
     for index, value in data do
