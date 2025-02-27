@@ -1,32 +1,34 @@
 export type Cleaning =
-	Instance |
-	RBXScriptConnection |
-	() -> () |
-	{destroy: (unknown) -> ()} |
-	{Destroy: (unknown) -> ()} |
-	{ Cleaning } |
-    thread
+    Instance
+    | RBXScriptConnection
+    | () -> ()
+    | { destroy: (unknown) -> () }
+    | { Destroy: (unknown) -> () }
+    | { Cleaning }
+    | thread
 
 export type Piece<D = unknown> = {
-	data: D
+    data: D,
 }
 
 export type Entity = number
 
-export type UsedAsEntity<D = unknown> = Entity | Piece<D>
+export type UsedAs<D = unknown> = Entity | Piece<D>
 
 export type Word = number
 export type Mask = number
 
 export type BitMap = { [Word]: Mask }
-export type Record = { word: Word, mask: Mask }
 
-export type EntityData<D = any | never> = { data: D }
+export type Record = {
+    word: Word,
+    mask: Mask
+}
 
 export type Priority = number
 
 export type QuerySettings<P...> = {
-    query: () -> (P...),
+    query: () -> P...,
     priority: number?
 }
 
@@ -52,8 +54,8 @@ type queryFields<P...> = {
 
 type queryImpl<P...> = {
     __index: queryImpl<P...>,
-    New: (settings: QuerySettings<P...>) -> (Query<P...>),
-    trait: (self: Query<P...>, name: string, trait: (Data, P...) -> ()) -> (Query<P...>)
+    New: (settings: QuerySettings<P...>) -> Query<P...>,
+    trait: (self: Query<P...>, name: string, trait: (Data, P...) -> ()) -> Query<P...>
 }
 
 export type Registry = typeof(setmetatable({} :: RegistryFields, {} :: RegistryImpl))
@@ -64,7 +66,7 @@ type RegistryFields = {
     cachedPieces: { [Piece]: Entity },
     entityRecords: { [Entity]: Record },
     bitMaps: { [Entity]: BitMap },
-    storage: { [Entity]: { [Entity]: EntityData } },
+    storage: { [Entity]: { [Entity]: Piece<any> } },
     queryStorage: { [Priority]: { Query } },
     queryMaps: { [Query]: BitMap },
     consumedQueries: { [Query]: { [Entity]: Cleaning } }
@@ -75,13 +77,15 @@ type RegistryImpl = {
     New: () -> Registry,
     entity: (self: Registry) -> Entity,
     entityAt: (self: Registry, at: number) -> Entity,
+    cast: (self: Registry, ...UsedAs) -> ...Entity,
+    pair: (self: Registry, relation: UsedAs, target: UsedAs) -> Entity,
     include: (self: Registry, queries: { Query }) -> (),
-    match: (self: Registry, entity: UsedAsEntity) -> (),
-    add: <D>(self: Registry, entity: UsedAsEntity, piece: UsedAsEntity<D>, data: D?) -> D?,
-    remove: (self: Registry, entity: UsedAsEntity, piece: UsedAsEntity) -> (),
-    delete: (self: Registry, entity: UsedAsEntity) -> (),
-    contains: (self: Registry, entity: UsedAsEntity, ...UsedAsEntity) -> boolean,
-    ask: <D>(self: Registry, entity: UsedAsEntity, piece: UsedAsEntity<D>) -> EntityData<D>?
+    match: (self: Registry, entity: UsedAs) -> (),
+    add: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>, data: D?) -> D?,
+    remove: (self: Registry, entity: UsedAs, piece: UsedAs) -> (),
+    delete: (self: Registry, entity: UsedAs) -> (),
+    contains: (self: Registry, entity: UsedAs, ...UsedAs) -> boolean,
+    ask: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>) -> Piece<D>?
 }
 
 return {}

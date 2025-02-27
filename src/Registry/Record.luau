@@ -1,6 +1,6 @@
 local Package = script.Parent.Parent
-local Types = require(Package.Common.Types)
 
+local Types = require(Package.Common.Types)
 type Record = Types.Record
 type BitMap = Types.BitMap
 
@@ -36,8 +36,31 @@ local function UnappendRecordFromMap(
     end
 end
 
+local function MapContainsRecord(
+    map: BitMap,
+    record: Record
+)
+    return bit32.band(map[record.word] or 0, record.mask) ~= record.mask
+end
+
+local function CompareMapsEntries(
+    target: BitMap,
+    query: BitMap
+): boolean
+
+    for word, bits in query do
+        if bit32.band(target[word] or 0, bits) ~= bits then
+            return false
+        end
+    end
+
+    return true
+end
+
 return table.freeze {
     generate = GenerateRecord,
     append = AppendRecordToMap,
-    unappend = UnappendRecordFromMap
+    unappend = UnappendRecordFromMap,
+    compare = CompareMapsEntries,
+    contains = MapContainsRecord
 }
