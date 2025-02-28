@@ -1,0 +1,60 @@
+site_name: Prism
+
+repo_name: 0jewell/Prism
+repo_url: https://github.com/0jewell/Prism
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Dark theme
+
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Light theme
+
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.tracking
+    - navigation.sections
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.indexes
+    - navigation.footer
+    - navigation.expand
+
+    - search.suggest
+    - search.highlight
+    - search.share
+
+    - content.action.edit
+    - content.code.copy
+    - content.code.annotate
+
+  language: en
+
+  font:
+    text: Figtree
+    code: Overpass Mono
+
+markdown_extensions:
+  - toc:
+      title: On this page
+  - pymdownx.superfences
+
+
+extra_css:
+  - stylesheets/theme.css
+
+copyright: Copyright &copy; 2025 0jewell
+
+nav:
+  - Home: index.md
