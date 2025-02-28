@@ -45,15 +45,15 @@ export type Data = {
     cleaning: { Cleaning }
 }
 
-export type Query<P... = ...any> = typeof(setmetatable({} :: queryFields<P...>, {} :: queryImpl<P...>))
+export type Query<P... = ...any> = typeof(setmetatable({} :: QueryFields<P...>, {} :: QueryImpl<P...>))
 
-type queryFields<P...> = {
+type QueryFields<P...> = {
     traits: { TraitRecord<P...> },
     settings: QuerySettings<P...>
 }
 
-type queryImpl<P...> = {
-    __index: queryImpl<P...>,
+type QueryImpl<P...> = {
+    __index: QueryImpl<P...>,
     New: (settings: QuerySettings<P...>) -> Query<P...>,
     trait: (self: Query<P...>, name: string, trait: (Data, P...) -> ()) -> Query<P...>
 }
