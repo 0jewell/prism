@@ -46,6 +46,7 @@ theme:
     code: Overpass Mono
 
 markdown_extensions:
+  - admonition
   - toc:
       title: On this page
   - pymdownx.superfences
@@ -60,3 +61,4 @@ nav:
   - Home: index.md
   - Tutorials:
     - Installing: Tutorials/Installing.md
+    - Importing: Tutorials/Importing.md
