@@ -50,7 +50,6 @@ markdown_extensions:
       title: On this page
   - pymdownx.superfences
 
-
 extra_css:
   - stylesheets/theme.css
 
@@ -58,3 +57,5 @@ copyright: Copyright &copy; 2025 0jewell
 
 nav:
   - Home: index.md
+  - Tutorials:
+    - Installing: Tutorials/Installing.md
