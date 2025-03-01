@@ -1,5 +1,9 @@
+* {
+    --prism-pink: #d49ece;
+}
+
 :root {
-    --md-primary-fg-color: #3f48c9;
+    --md-primary-fg-color: var(--prism-pink);
     --md-primary-fg-color--light: var(--md-primary-fg-color);
     --md-primary-fg-color--dark: var(--md-primary-fg-color);
 

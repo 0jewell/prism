@@ -6,19 +6,19 @@ repo_url: https://github.com/0jewell/Prism
 theme:
   name: material
   palette:
-    - scheme: default
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/brightness-7
-        name: Dark theme
-
     - scheme: slate
       primary: custom
       accent: custom
       toggle:
-        icon: material/brightness-4
-        name: Light theme
+        icon: octicons/sun-24
+        name: Switch to Light theme
+
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: octicons/moon-24
+        name: Switch to Dark theme
 
   features:
     - navigation.tabs
