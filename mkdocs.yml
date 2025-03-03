@@ -3,8 +3,12 @@ site_name: Prism
 repo_name: 0jewell/Prism
 repo_url: https://github.com/0jewell/Prism
 
+edit_uri: edit/main/docs/
+
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
   palette:
     - scheme: slate
       primary: custom
@@ -62,3 +66,6 @@ nav:
   - Tutorials:
     - Installing: Tutorials/Installing.md
     - Importing: Tutorials/Importing.md
+
+    - Concepts:
+      - Entities: Concepts/Entities.md
