@@ -1,5 +1,8 @@
 # Home
 
+![Prism Logo](assets/home/logo-light-theme.svg#only-light)
+![Prism Logo](assets/home/logo-dark-theme.svg#only-dark)
+
 **Prism** is a powerful and flexible **Entity Component System** (ECS) library designed for efficient game development in Roblox.
 <br>It enables a data-driven approach to managing entities and their behaviors.
 
