@@ -1,6 +1,6 @@
 <div align="center">
     <br>
-    <img src="/docs/assets/home/logo-dark-theme.svg" alt="Prism" width="350">
+    <img src="/docs/assets/home/logo-dark-theme.svg" alt="Prism" width="450">
     <br><br>
     <p><strong>A ECS library based on reactive systems 🧸</strong></p>
     <br>
