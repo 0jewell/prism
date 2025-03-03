@@ -2,10 +2,10 @@
 
 ### with Pesde <small>recommended</small>
 
-- Go to the [Pesde Website](https://pesde.dev/packages/0jewell/prism/0.1.1/any);
-- Select the most recent or preferred version (do not choose 1.0.0 versions);
-- Copy the installation command;
-- Go to your source directory, open the terminal and paste it.
+In your terminal, run the following command:
+```sh
+pesde add 0jewell/prism
+```
 
 Your pesde.toml file should be like this:
 ```toml title="pesde.toml"
