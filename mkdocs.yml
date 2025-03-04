@@ -58,6 +58,7 @@ markdown_extensions:
 extra_css:
   - stylesheets/theme.css
   - assets/themes/page.css
+  - assets/themes/paragraph.css
 
 copyright: Copyright &copy; 2025 0jewell
 
