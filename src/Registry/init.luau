@@ -19,7 +19,7 @@ type UsedAs<D = unknown> = Types.UsedAs<D>
 
 type Query<Q... = ...any> = Types.Query<Q...>
 
-type BitMap = Types.BitMap
+type Bitmap = Types.Bitmap
 type Record = Types.Record
 
 type Registry = Types.Registry
@@ -33,8 +33,7 @@ do
             nextId = 1,
             size = 0,
             cachedPieces = {},
-            entityRecords = {},
-            bitMaps = {},
+            records = {},
             storage = {},
             queryStorage = {},
             queryMaps = {},
@@ -62,7 +61,7 @@ do
         end
 
         local record = Record.generate(at)
-        self.entityRecords[at] = record
+        self.records[at] = record
 
         self.size += 1
         return at
@@ -114,14 +113,14 @@ do
     local function AssembleQueryMap(
         registry: Registry,
         entities: { UsedAs }
-    ): BitMap
+    ): Bitmap
 
         local map = {}
 
         for _, entity in entities do
-            local castedEntity = registry:cast(entity)
+            local entity = registry:cast(entity)
 
-            local record = registry.entityRecords[castedEntity]
+            local record = registry.records[entity]
                 or error('Invalid entity: no record')
 
             Record.append(map, record)
@@ -157,7 +156,9 @@ do
         entity: Entity
     )
         local consumed = registry.consumedQueries
-        local BitMap = registry.bitMaps[entity]
+
+        local record = registry.records[entity]
+            or error('Invalid entity: no record')
 
         local function callTraitsFromQuery(
             query: Query
@@ -212,7 +213,7 @@ do
             query: Query
         )
             local queryMap = registry.queryMaps[query]
-            local canMatch = Record.compare(BitMap, queryMap)
+            local canMatch = Record.compare(record.bitmap, queryMap)
 
             return if canMatch
                 then callTraitsFromQuery(query)
@@ -246,19 +247,12 @@ do
         
         local entity, castedPiece = self:cast(entity, piece)
 
-        local bitMaps = self.bitMaps
-        local entityRecords = self.entityRecords
+        local records = self.records
 
-        if not bitMaps[entity] then
-            bitMaps[entity] = {}
-        end
+        local record = records[entity]
+        local pieceRecord = records[castedPiece]
 
-        local map = bitMaps[entity]
-
-        local record = entityRecords[castedPiece]
-            or error('Invalid entity: no record')
-
-        Record.append(map, record)
+        Record.append(record.bitmap, pieceRecord)
 
         local storage = self.storage
 
@@ -295,16 +289,12 @@ do
     )
         local entity, piece = self:cast(entity, piece)
 
-        local bitMaps = self.bitMaps
-        local entityRecords = self.entityRecords
+        local records = self.records
 
-        local map = bitMaps[entity]
-        if not map then return end
+        local record = records[entity]
+        local pieceRecord = records[piece]
 
-        local record = entityRecords[piece]
-            or error('Invalid entity: no record')
-
-        Record.unappend(map, record)
+        Record.unappend(record.bitmap, pieceRecord)
 
         local storage = self.storage
 
@@ -327,10 +317,10 @@ do
     )
         local castedEntity = self:cast(entity)
 
-        local bitMaps = self.bitMaps
+        local records = self.records
         local storage = self.storage
 
-        if not bitMaps[castedEntity] then return end
+        if not records[castedEntity] then return end
 
         local entityStorage = storage[castedEntity]
 
@@ -342,7 +332,7 @@ do
             storage[castedEntity] = nil
         end
 
-        bitMaps[castedEntity] = nil
+        records[castedEntity] = nil
 
         if typeof(entity) == 'table' then
             self.cachedPieces[entity] = nil
@@ -359,19 +349,20 @@ do
         
         local entity = self:cast(entity)
 
-        local entityMap = self.bitMaps[entity]
-        if not entityMap then return false end
+        local records = self.records
+
+        local record = records[entity]
+        if not record then return false end
 
         for i = 1, select('#', ...) do
 
             local piece = select(i, ...)
             local castedPiece = self:cast(piece)
             
-            local pieceRecord = self.entityRecords[castedPiece]
-            assert(pieceRecord, 'Invalid entity: no record')
-
-            local hasPiece = Record.contains(entityMap, pieceRecord)
-            if hasPiece then
+            local pieceRecord = records[castedPiece]
+            
+            local hasPiece = Record.contains(record, pieceRecord)
+            if not hasPiece then
                 return false
             end
         end

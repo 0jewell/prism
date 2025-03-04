@@ -2,31 +2,35 @@ local Package = script.Parent.Parent
 
 local Types = require(Package.Common.Types)
 type Record = Types.Record
-type BitMap = Types.BitMap
+type Bitmap = Types.Bitmap
 
 local function GenerateRecord(
     entity: Types.Entity
 ): Record
 
-    local wordIndex = math.floor((entity - 1) / 64) + 1
+    local word = math.floor((entity - 1) / 64) + 1
 
     local bitPosition = (entity - 1) % 64
     local mask = bit32.lshift(1, bitPosition)
 
-    local record = { word = wordIndex, mask = mask }
+    local record = {
+        word = word,
+        mask = mask,
+        bitmap = {}
+    }
 
     return record
 end
 
-local function AppendRecordToMap(
-    map: Types.BitMap,
+local function AppendRecord(
+    map: Bitmap,
     record: Record
 )
     map[record.word] = bit32.bor(map[record.word] or 0, record.mask)
 end
 
-local function UnappendRecordFromMap(
-    map: BitMap,
+local function UnappendRecord(
+    map: Bitmap,
     record: Record
 )
     map[record.word] = bit32.band(map[record.word] or 0, bit32.bnot(record.mask))
@@ -37,15 +41,16 @@ local function UnappendRecordFromMap(
 end
 
 local function MapContainsRecord(
-    map: BitMap,
+    map: Record,
     record: Record
 )
-    return bit32.band(map[record.word] or 0, record.mask) ~= record.mask
+    local bitmap = map.bitmap
+    return bit32.band(bitmap[record.word] or 0, record.mask) == record.mask
 end
 
 local function CompareMapsEntries(
-    target: BitMap,
-    query: BitMap
+    target: Bitmap,
+    query: Bitmap
 ): boolean
 
     for word, bits in query do
@@ -59,8 +64,8 @@ end
 
 return table.freeze {
     generate = GenerateRecord,
-    append = AppendRecordToMap,
-    unappend = UnappendRecordFromMap,
+    append = AppendRecord,
+    unappend = UnappendRecord,
     compare = CompareMapsEntries,
     contains = MapContainsRecord
 }

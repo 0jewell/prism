@@ -18,11 +18,12 @@ export type UsedAs<D = unknown> = Entity | Piece<D>
 export type Word = number
 export type Mask = number
 
-export type BitMap = { [Word]: Mask }
+export type Bitmap = { [Word]: Mask }
 
 export type Record = {
     word: Word,
-    mask: Mask
+    mask: Mask,
+    bitmap: Bitmap
 }
 
 export type Priority = number
@@ -32,17 +33,17 @@ export type QuerySettings<P...> = {
     priority: number?
 }
 
+export type Data = {
+    registry: Registry,
+    entity: Entity,
+    cleaning: { Cleaning }
+}
+
 export type Trait<P...> = (Data, P...) -> ()
 
 export type TraitRecord<P...> = {
     trait: Trait<P...>,
     name: string
-}
-
-export type Data = {
-    registry: Registry,
-    entity: Entity,
-    cleaning: { Cleaning }
 }
 
 export type Query<P... = ...any> = typeof(setmetatable({} :: QueryFields<P...>, {} :: QueryImpl<P...>))
@@ -64,11 +65,10 @@ type RegistryFields = {
     nextId: number,
     size: number,
     cachedPieces: { [Piece]: Entity },
-    entityRecords: { [Entity]: Record },
-    bitMaps: { [Entity]: BitMap },
+    records: { [Entity]: Record },
     storage: { [Entity]: { [Entity]: Piece<any> } },
     queryStorage: { [Priority]: { Query } },
-    queryMaps: { [Query]: BitMap },
+    queryMaps: { [Query]: Bitmap },
     consumedQueries: { [Query]: { [Entity]: Cleaning } }
 }
 
