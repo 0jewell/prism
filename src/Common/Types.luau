@@ -66,7 +66,7 @@ type RegistryFields = {
     size: number,
     cachedPieces: { [Piece]: Entity },
     records: { [Entity]: Record },
-    storage: { [Entity]: { [Entity]: Piece<any> } },
+    storage: { [Entity]: { [Entity]: any } },
     queryStorage: { [Priority]: { Query } },
     queryMaps: { [Query]: Bitmap },
     consumedQueries: { [Query]: { [Entity]: Cleaning } }
@@ -85,7 +85,7 @@ type RegistryImpl = {
     remove: (self: Registry, entity: UsedAs, piece: UsedAs) -> (),
     delete: (self: Registry, entity: UsedAs) -> (),
     contains: (self: Registry, entity: UsedAs, ...UsedAs) -> boolean,
-    ask: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>) -> Piece<D>?
+    ask: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>) -> D?
 }
 
 return {}

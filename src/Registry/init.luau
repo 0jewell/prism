@@ -376,7 +376,7 @@ do
         self: Registry,
         entity: UsedAs,
         piece: UsedAs<D>
-    ): Piece<D>?
+    ): D?
 
         local entity = self:cast(entity)
 
