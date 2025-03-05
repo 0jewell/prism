@@ -9,10 +9,14 @@ local Query = Prism.Query { query = function() return Piece1, Piece2 end }
 Query:trait('Test', function(data, piece1, piece2)
 	local seconds = 1
 
-	while task.wait(1) do
-		print(seconds, 'seconds has passed!')
-		seconds += 1
-	end
+	local thread = task.spawn(function()
+		while task.wait(1) do
+			print(seconds, 'seconds has passed!')
+			seconds += 1
+		end
+	end)
+
+	table.insert(data.cleaning, thread)
 end)
 
 do

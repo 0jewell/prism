@@ -71,29 +71,33 @@ do
         self: Registry,
         ...: UsedAs
     ): ...Entity
-
+    
         local results = {}
+
+        local function casting(
+            target: UsedAs
+        ): Entity
+        
+            if typeof(target) == 'number' then
+                return target
+            end
+
+            if typeof(target) == 'table' then
+                local cached = self.cachedPieces[target]
+                if cached then return cached end
+
+                local entity = self:entity()
+                self.cachedPieces[target] = entity
+
+                return entity
+            end
+
+            error('Invalid entity: not piece or entity')
+        end
         
         for _, target in { ... } do
-            if typeof(target) == 'number' then
-                table.insert(results, target)
-
-            else
-                assert(
-                    typeof(target) == 'table',
-                    'Invalid entity: not a piece or id'
-                )
-
-                local cached = self.cachedPieces[target]
-                if cached then
-                    table.insert(results, cached)
-                else
-                    local castedEntity = self:entity()
-                    self.cachedPieces[target] = castedEntity
-
-                    table.insert(results, castedEntity)
-                end
-            end
+            local casted = casting(target)
+            table.insert(results, casted)
         end
         
         return table.unpack(results)
@@ -163,11 +167,11 @@ do
         local function callTraitsFromQuery(
             query: Query
         )
-            if consumed[query] and consumed[query][entity] then return end
+            local queryData = consumed[query]
+            if queryData and queryData[entity] then return end
 
             for _, traitRecord in query.traits do
-                local cleaning = {}
-                local entityDatas = {}
+                local cleaning, pieces = {}, {}
 
                 local data = {
                     registry = registry,
@@ -178,14 +182,10 @@ do
                 for _, piece in { query.settings.query() } do
                     local storedData = registry:ask(entity, piece)
         
-                    table.insert(entityDatas, storedData)
+                    table.insert(pieces, storedData)
                 end
         
-                local thread = task.spawn(
-                    traitRecord.trait,
-                    data, unpack(entityDatas)
-                )
-                table.insert(cleaning, thread)
+                traitRecord.trait(data, unpack(pieces))
         
                 consumed[query] = consumed[query] or {}
                 consumed[query][entity] = cleaning
@@ -196,12 +196,14 @@ do
             query: Query
         )
             for _, traitRecord in query.traits do
-                local cleaning = consumed[query] and consumed[query][entity]
-                if not cleaning then continue end
+                local queryData = consumed[query]
 
-                consumed[query][entity] = nil
+                local cleaning = queryData and queryData[entity]
+                if not cleaning then return end
 
-                if not next(consumed[query]) then
+                queryData[entity] = nil
+
+                if not next(queryData) then
                     consumed[query] = nil
                 end
 
