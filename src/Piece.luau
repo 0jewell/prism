@@ -20,7 +20,19 @@ local function from(constructor, ...): any
     end
 end
 
+type OnAdd = Types.OnAdd
+local OnAdd = Piece() :: Piece<OnAdd>
+
+type OnRemove = Types.OnRemove
+local OnRemove = Piece() :: Piece<OnRemove>
+
+local BuiltInPiece = Piece()
+
 return table.freeze {
     New = Piece,
-    from = from
+    from = from,
+
+    OnAdd = OnAdd,
+    OnRemove = OnRemove,
+    BuiltInPiece = BuiltInPiece
 }

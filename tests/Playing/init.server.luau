@@ -23,6 +23,10 @@ do
 	Registry:include { Query }
 
 	local entity = Registry:entity()
+	Registry:add(entity, Prism.OnAdd, function(entity, piece, data) 
+		print(entity, piece, data)
+	end)
+
 	Registry:add(entity, Piece1)
 	Registry:add(entity, Piece2)
 

@@ -3,6 +3,8 @@
 --!nolint LocalShadow
 local Package = script.Parent
 
+local Piece = require(Package.Piece)
+
 local Record = require(script.Record)
 local Pair = require(script.Pair)
 
@@ -24,6 +26,10 @@ type Record = Types.Record
 
 type Registry = Types.Registry
 
+local BuiltInPiece = Piece.BuiltInPiece
+local PrismOnAdd = Piece.OnAdd
+local PrismOnRemove = Piece.OnRemove
+
 local Registry = {}
 do
     Registry.__index = Registry
@@ -39,8 +45,13 @@ do
             queryMaps = {},
             consumedQueries = {}
         }
+        setmetatable(self, Registry)
 
-        return setmetatable(self, Registry)
+        self:add(PrismOnAdd, BuiltInPiece)
+        self:add(PrismOnRemove, BuiltInPiece)
+        self:add(BuiltInPiece, BuiltInPiece)
+
+        return self
     end
 
     function Registry.entity(self: Registry): Entity
@@ -279,6 +290,11 @@ do
             entityStorage[castedPiece] = { data = data }
         end
 
+        local onAdd = self:ask(entity, PrismOnAdd)
+        if onAdd then
+            onAdd.data(entity, castedPiece, data)
+        end
+
         self:match(entity)
 
         return data
@@ -308,6 +324,11 @@ do
         if storedData then
             Clean(storedData)
             entityStorage[piece] = nil
+        end
+
+        local onRemove = self:ask(entity, PrismOnRemove)
+        if onRemove then
+            onRemove.data(entity, piece)
         end
 
         self:match(entity)
@@ -376,7 +397,7 @@ do
         self: Registry,
         entity: UsedAs,
         piece: UsedAs<D>
-    ): D?
+    ): Piece<D>?
 
         local entity = self:cast(entity)
 

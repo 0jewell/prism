@@ -24,5 +24,9 @@ return table.freeze {
     from = Piece.from,
 
     MergeData = Data.merge,
-    Clean = Clean
+    Clean = Clean,
+
+    OnAdd = Piece.OnAdd,
+    OnRemove = Piece.OnRemove,
+    BuiltInPiece = Piece.BuiltInPiece
 }
