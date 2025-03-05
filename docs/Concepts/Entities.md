@@ -48,6 +48,8 @@ Since Pieces are the only way to define an entity’s data, every Piece is inher
 When a Piece is created, it automatically becomes an entity within the registry. This mean that all of the API that apply to regular entities also apply to pieces.
 
 ```lua
+local Piece = Prism.Piece
+
 local health, networked = Piece(...), Piece(...)
 Registry:add(health, networked)
 ```

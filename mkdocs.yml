@@ -70,3 +70,4 @@ nav:
 
     - Concepts:
       - Entities: Concepts/Entities.md
+      - Traits: Concepts/Traits.md
