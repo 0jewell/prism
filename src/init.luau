@@ -14,7 +14,7 @@ local Piece = require(script.Piece)
 export type Piece<D = unknown> = Types.Piece<D>
 
 export type Data  = Types.Data
-export type UsedAs<D = never, T = D> = Types.UsedAs<D>
+export type UsedAs<D = never> = Types.UsedAs<D>
 
 return table.freeze {
     Registry = Registry.New,
