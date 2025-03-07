@@ -20,7 +20,7 @@ end)
 Registry:include { query }
 
 Registry:add(entity, health)
---// output: This is the 1 time
+--> This is the 1 time
 ```
 
 If the requirements are no longer meet, they will be removed. When this happen,
@@ -30,7 +30,7 @@ if the entity meet the requirements again, the trait you be applied once again.
 Registry:remove(entity, health)
 
 Registry:add(entity, health)
---// output: This is the 2 time
+--> This is the 2 time
 ```
 
 ### Trait cleaning scope
@@ -39,14 +39,39 @@ Traits can be added to or removed from entities, but reverting changes is not do
 When removing a trait, you must manually handle the cleanup of any data associated with it.
 
 ```lua
-local Query = Prism.Query { query = function() return part end }
+return Prism.Query { query = function() return part end }
 
-Query:trait('Create part', function(data, part)
-    local instance = Instance.new('Part')
+    :trait('Create part', function(data, part)
+        local instance = Instance.new('Part')
 
-    --// The trait scope is cleaned when the trait is removed
-    table.insert(data.cleaning, instance)
+        -- The trait scope is cleaned when the trait is removed
+        table.insert(data.cleaning, instance)
 
-    part.data.instance = instance
-end)
+        part.data.instance = instance
+    end)
+```
+
+!!! note "Modularized code"
+    By returning queries in modules, you can easily organize your codebase into different files. From now on, we will use this approach.
+
+### Trait order
+
+Queries can have multiple traits. By doing so, the trait creation order will count as the priority of it.
+
+```lua
+return Prism.Query { query = function() return part end }
+
+    :trait('Create part', function(data, part)
+        local instance = Instance.new('Part')
+
+        -- The trait scope is cleaned when the trait is removed
+        table.insert(data.cleaning, instance)
+
+        part.data.instance = instance
+    end)
+    
+    :trait('Print part', function(data, part)
+        print(part.data.instance)
+        --> "Part"
+    end)
 ```
