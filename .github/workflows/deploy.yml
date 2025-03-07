@@ -21,8 +21,8 @@ jobs:
 
       - name: Configure git credentials
         run: |
-          git config user.name prismdoc
-          git config user.email prismdoc@example.com
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
 
       - name: Release on gh-pages
         run: |
