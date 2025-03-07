@@ -1,17 +1,24 @@
+# Using Fusion with Prism
+
+This example shows how to use Fusion states in pieces data.
+
+### Overview
+
+```lua
 local Packages = game.ReplicatedStorage.Packages
 
 local Fusion = require(Packages.Fusion)
+local peek = Fusion.peek
+local scoped = Fusion.scoped
 type Value<T> = Fusion.Value<T>
 
-local peek = Fusion.peek
-
 local Prism = require(Packages.Prism)
+local from = Prism.from
 type Piece<D> = Prism.Piece<D>
 
-local scope = Fusion.scoped()
-
 local function Valuing(data)
-    return Prism.from(Fusion.Value, scope, data)
+    local scope = scoped()
+    return from(Fusion.Value, scope, data)
 end
 
 type healthData = Piece<{ 
@@ -52,3 +59,4 @@ return Prism.Query { query = function() return health end }
         end
     end)
 end)
+``` 

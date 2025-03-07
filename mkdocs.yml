@@ -71,3 +71,6 @@ nav:
     - Concepts:
       - Entities: Concepts/Entities.md
       - Traits: Concepts/Traits.md
+
+  - Examples:
+    - Using Fusion: Examples/Fusion.md
