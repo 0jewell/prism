@@ -1,0 +1,76 @@
+site_name: Prism
+
+repo_name: 0jewell/Prism
+repo_url: https://github.com/0jewell/Prism
+
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
+  palette:
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: octicons/sun-24
+        name: Switch to Light theme
+
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: octicons/moon-24
+        name: Switch to Dark theme
+
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.tracking
+    - navigation.sections
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.indexes
+    - navigation.footer
+    - navigation.expand
+
+    - search.suggest
+    - search.highlight
+    - search.share
+
+    - content.action.edit
+    - content.code.copy
+    - content.code.annotate
+
+  language: en
+
+  font:
+    text: Figtree
+    code: Overpass Mono
+
+markdown_extensions:
+  - admonition
+  - toc:
+      title: On this page
+  - pymdownx.superfences
+
+extra_css:
+  - stylesheets/theme.css
+  - assets/themes/page.css
+  - assets/themes/paragraph.css
+
+copyright: Copyright &copy; 2025 0jewell
+
+nav:
+  - Home: index.md
+  - Tutorials:
+    - Installing: Tutorials/Installing.md
+    - Importing: Tutorials/Importing.md
+
+    - Concepts:
+      - Entities: Concepts/Entities.md
+      - Traits: Concepts/Traits.md
+
+  - Examples:
+    - Using Fusion: Examples/Fusion.md
