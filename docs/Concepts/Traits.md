@@ -1,30 +1,29 @@
 # Traits
+
 Traits define the behavior of entities by operating on entities that contain specific Pieces.
 They act as systems that process and modify entity states dynamically.
 
-### Understanding them
-
-A Trait is executed when an entity matches the required Pieces specified in its query.
-It can react to state changes, update values, or trigger actions based on entity data. It's up to you.
+### Understading them
+A Trait is executed whenever an entity matches the required Pieces specified in its query.
 
 ```lua
 local Query = Prism.Query { query = function() return health end }
 
-local Counting = 1
+local counting = 1
 
 Query:trait('Regenerate Health', function(data, health)
     print('This is the', counting, 'time')
-    Counting += 1
+    counting += 1
 end)
 
-Registry:include { query }
+Registry:include { Query }
 
 Registry:add(entity, health)
 --> This is the 1 time
 ```
 
-If the requirements are no longer meet, they will be removed. When this happen,
-if the entity meet the requirements again, the trait you be applied once again.
+If the entity no longer meets the requirements, the trait is removed.
+If it later meets the conditions again, the trait is reapplied.
 
 ```lua
 Registry:remove(entity, health)
@@ -32,11 +31,9 @@ Registry:remove(entity, health)
 Registry:add(entity, health)
 --> This is the 2 time
 ```
-
-### Trait cleaning scope
-
-Traits can be added to or removed from entities, but reverting changes is not done automatically.
-When removing a trait, you must manually handle the cleanup of any data associated with it.
+### Trait Cleanup
+Traits can be added or removed dynamically, but removing a trait does not automatically revert changes.
+You must manually handle the cleanup of any data associated with it.
 
 ```lua
 return Prism.Query { query = function() return part end }
@@ -44,19 +41,20 @@ return Prism.Query { query = function() return part end }
     :trait('Create part', function(data, part)
         local instance = Instance.new('Part')
 
-        -- The trait scope is cleaned when the trait is removed
+        -- Store the instance for cleanup when the trait is removed
         table.insert(data.cleaning, instance)
 
         part.data.instance = instance
     end)
 ```
 
-!!! note "Modularized code"
-    By returning queries in modules, you can easily organize your codebase into different files. From now on, we will use this approach.
+!!! note "Modular Code"
+    Returning queries from modules allows for a cleaner codebase.
+    From now on, we will follow this approach.
 
-### Trait order
-
-Queries can have multiple traits. By doing so, the trait creation order will count as the priority of it.
+### Trait Execution Order
+A single query can have multiple traits.
+Traits are executed in the order they are defined within the query.
 
 ```lua
 return Prism.Query { query = function() return part end }
@@ -64,14 +62,14 @@ return Prism.Query { query = function() return part end }
     :trait('Create part', function(data, part)
         local instance = Instance.new('Part')
 
-        -- The trait scope is cleaned when the trait is removed
+        -- Store the instance for cleanup when the Trait is removed
         table.insert(data.cleaning, instance)
 
         part.data.instance = instance
     end)
-    
+
     :trait('Print part', function(data, part)
         print(part.data.instance)
-        --> "Part"
+        --> 'Part'
     end)
 ```
