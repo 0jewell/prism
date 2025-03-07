@@ -1,6 +1,6 @@
 local Package = script.Parent.Parent
 
-local Types = require(Package.Common.Types)
+local Types = require(Package.Types)
 type Entity = Types.Entity
 
 local FACTOR = 2 ^ 26

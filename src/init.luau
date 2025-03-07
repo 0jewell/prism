@@ -1,7 +1,7 @@
-local Types = require(script.Common.Types)
+local Types = require(script.Types)
 
-local Data = require(script.Common.Data)
-local Clean = require(script.Common.Clean)
+local Data = require(script.Modules.Data)
+local Clean = require(script.Modules.Clean)
 
 local Registry = require(script.Registry)
 export type Registry = Types.Registry

@@ -4,14 +4,17 @@
 local Package = script.Parent
 
 local Piece = require(Package.Piece)
+local BuiltInPiece = Piece.BuiltInPiece
+local PrismOnAdd = Piece.OnAdd
+local PrismOnRemove = Piece.OnRemove
 
 local Record = require(script.Record)
 local Pair = require(script.Pair)
 
-local Data = require(Package.Common.Data)
-local Clean = require(Package.Common.Clean)
+local Data = require(Package.Modules.Data)
+local Clean = require(Package.Modules.Clean)
 
-local Types = require(Package.Common.Types)
+local Types = require(Package.Types)
 type Cleaning = Types.Cleaning
 
 type Entity = Types.Entity
@@ -25,10 +28,6 @@ type Bitmap = Types.Bitmap
 type Record = Types.Record
 
 type Registry = Types.Registry
-
-local BuiltInPiece = Piece.BuiltInPiece
-local PrismOnAdd = Piece.OnAdd
-local PrismOnRemove = Piece.OnRemove
 
 local Registry = {}
 do
@@ -111,7 +110,7 @@ do
             table.insert(results, casted)
         end
         
-        return table.unpack(results)
+        return unpack(results)
     end
 
     function Registry.pair(
