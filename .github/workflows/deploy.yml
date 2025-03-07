@@ -27,6 +27,9 @@ jobs:
           git config user.name prismdoc
           git config user.email prismdoc@example.com
 
+      - name: Fetch latest changes
+        run: git fetch origin gh-pages
+
       - name: Release on gh-pages
         run: |
           mkdocs gh-deploy
