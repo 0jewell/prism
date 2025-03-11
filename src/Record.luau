@@ -1,6 +1,4 @@
-local Package = script.Parent.Parent
-
-local Types = require(Package.Types)
+local Types = require('./Types')
 type Record = Types.Record
 type Bitmap = Types.Bitmap
 

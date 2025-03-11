@@ -1,12 +1,10 @@
-local Package = script.Parent
-
-local Data = require(Package.Modules.Data)
+local Data = require('./Modules/Data')
 
 local DefaultSettings = {
     priority = 0
 }
 
-local Types = require(Package.Types)
+local Types = require('./Types')
 type QuerySettings<P...> = Types.QuerySettings<P...>
 
 type Trait<P...> = Types.Trait<P...>

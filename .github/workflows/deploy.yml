@@ -1,4 +1,5 @@
 name: MkDocs Deploy
+
 on:
   push:
     branches:

@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Traits no longer run in a separated thread
 
+### Removed
+- Function `merge` from library
+
 ### Fixes 
 
 - Fix `registry:ask` return type being typed as `any`

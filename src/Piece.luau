@@ -1,6 +1,4 @@
-local Package = script.Parent
-
-local Types = require(Package.Types)
+local Types = require('./Types')
 type Piece<D = unknown> = Types.Piece<D>
 
 local function Piece<D>(

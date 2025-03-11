@@ -21,8 +21,6 @@ return {
     Piece = Piece.New,
 
     from = Piece.from,
-
-    MergeData = Data.merge,
     Clean = Clean
 }
 ```

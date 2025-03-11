@@ -1,20 +1,18 @@
 --!native
 --!optimize 2
 --!nolint LocalShadow
-local Package = script.Parent
-
-local Piece = require(Package.Piece)
+local Piece = require('./Piece')
 local BuiltInPiece = Piece.BuiltInPiece
 local PrismOnAdd = Piece.OnAdd
 local PrismOnRemove = Piece.OnRemove
 
-local Record = require(script.Record)
-local Pair = require(script.Pair)
+local Record = require('./Record')
+local Pair = require('./Pair')
 
-local Data = require(Package.Modules.Data)
-local Clean = require(Package.Modules.Clean)
+local Data = require('./Modules/Data')
+local Clean = require('./Modules/Clean')
 
-local Types = require(Package.Types)
+local Types = require('./Types')
 type Cleaning = Types.Cleaning
 
 type Entity = Types.Entity
