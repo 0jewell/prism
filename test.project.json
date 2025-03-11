@@ -20,7 +20,7 @@
 			"$className": "ServerScriptService",
 			
 			"Tests": {
-				"$path": "tests"
+				"$path": "tests/playing"
 			}
 		}
 	}
