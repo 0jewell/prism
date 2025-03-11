@@ -1,9 +1,7 @@
 --!nolint LocalShadow
 --// from: https://github.com/dphfox/Fusion/blob/main/src/Memory/doCleanup.luau
 
-local Package = script.Parent.Parent
-
-local Types = require(Package.Types)
+local Types = require('../Types')
 type Cleaning = Types.Cleaning
 
 local alreadyDestroying: { [Cleaning]: true } = {}
