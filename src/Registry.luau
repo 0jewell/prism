@@ -193,10 +193,10 @@ do
                     table.insert(pieces, storedData)
                 end
         
-                traitRecord.trait(data, unpack(pieces))
-        
                 consumed[query] = consumed[query] or {}
                 consumed[query][entity] = cleaning
+
+                traitRecord.trait(data, unpack(pieces))
             end
         end
 
