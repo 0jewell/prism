@@ -5,16 +5,19 @@ local require: any = require
 local tests = Tiniest.collect_tests(function()
     local describe = Tiniest.describe
 
-    local function describe_from_file(name: string)
+    local function describeFromFile(name: string)
         describe(name, function()
             require(`./{name}.spec`)(Tiniest)
         end)
     end
 
-    describe_from_file('prism/Query')
+    describeFromFile('prism/Query')
 end)
 
-local results = Tiniest.run_tests(tests, {})
-if results.status_tally.fail > 0 then
-    error('One or more tests failed.')
+do
+    local results = Tiniest.run_tests(tests, {})
+
+    if results.status_tally.fail > 0 then
+        error('One or more tests failed.')
+    end
 end

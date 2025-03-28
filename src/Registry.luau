@@ -19,6 +19,7 @@ type Entity = Types.Entity
 type Piece<D> = Types.Piece<D>
 
 type UsedAs<D = unknown> = Types.UsedAs<D>
+type DeepTable<T> = Types.DeepTable<T>
 
 type Query<Q... = ...any> = Types.Query<Q...>
 
@@ -141,11 +142,17 @@ do
         return map
     end
 
-    function Registry.include<Q...>(
+    function Registry.include(
         self: Registry,
-        queries: { Query<Q...> }
+        queries: { DeepTable<Query> }
     )
         for _, query in queries do
+            assert(type(query) == 'table', 'Invalid query: must be a table')
+
+            if not query.trait then
+                local query: { DeepTable<Query> } = query :: any
+                return self:include(query)
+            end
 
             local priority = query.settings.priority
                 or error('Invalid query: must have priority')

@@ -62,6 +62,8 @@ type QueryImpl<P...> = {
     trait: (self: Query<P...>, name: string, trait: (Data, P...) -> ()) -> Query<P...>
 }
 
+export type DeepTable<T> = T & { T }
+
 export type Registry = typeof(setmetatable({} :: RegistryFields, {} :: RegistryImpl))
 
 type RegistryFields = {
@@ -82,7 +84,7 @@ type RegistryImpl = {
     entityAt: (self: Registry, at: number) -> Entity,
     cast: (self: Registry, ...UsedAs) -> ...Entity,
     pair: (self: Registry, relation: UsedAs, target: UsedAs) -> Entity,
-    include: (self: Registry, queries: { Query }) -> (),
+    include: (self: Registry, queries: { DeepTable<Query> }) -> (),
     match: (self: Registry, entity: UsedAs) -> (),
     add: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>, data: D?) -> D?,
     remove: (self: Registry, entity: UsedAs, piece: UsedAs) -> (),
