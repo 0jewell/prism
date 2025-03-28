@@ -60,6 +60,19 @@ extra_css:
   - assets/themes/page.css
   - assets/themes/paragraph.css
 
+extra:
+  consent:
+    title: "How about some cookies?"
+    description: >
+      We use cookies to remember your preferences, understand how you navigate our documentation, 
+      and improve your experience. With your consent, we can make things even better!  
+      But don't worry — you don't need cookies to browse (that would be just silly).  
+    actions:
+      - accept
+      - reject
+      - manage
+
+
 copyright: Copyright &copy; 2025 0jewell
 
 nav:
