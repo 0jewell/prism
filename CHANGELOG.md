@@ -14,11 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add `pair` function to the registry
 - Add `OnAdd` piece hook
 - Add `OnRemove` piece hook
+- Add `key` function to library
 
 ### Changes
 
 - Traits no longer run in a separated thread
-- `registry:include` not accepts deep tables of queries
+- Revert `registry:include` accepting deep tables of queries
+- Multiple pieces can be added in an entity in a single `registry:add` call
 
 ### Removed
 - Function `merge` from library
