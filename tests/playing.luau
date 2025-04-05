@@ -1,9 +1,13 @@
-local Prism = require(game.ReplicatedStorage.Packages.Prism)
+local task = require('@lune/task')
+
+local Prism = require('../src/lib')
 local Piece = Prism.Piece
+local key = Prism.key
 
 local Registry = Prism.Registry()
 
-local Piece1, Piece2 = Piece(10), Piece(5)
+local Piece1, Piece2 = Piece('piece 1'), Piece('piece 2')
+
 local Query = Prism.Query { query = function() return Piece1, Piece2 end }
 
 Query:trait('Test', function(data, piece1, piece2)
@@ -23,14 +27,16 @@ do
 	Registry:include { Query }
 
 	local entity = Registry:entity()
-	Registry:add(entity, Prism.OnAdd, function(entity, piece, data) 
+
+	Registry:add(entity, Prism.OnAdd, function(entity, piece, data)
+		warn('=== TRAIT ===')
 		print(entity, piece, data)
 	end)
 
-	Registry:add(entity, Piece1)
-	Registry:add(entity, Piece2)
+	print('Adding piece 1 & 2')
+	Registry:add(entity, { key(Piece1, Piece2) })
 
-	task.wait(3)
-
-	Registry:delete(entity)
+	warn('=== PIECE 1 ===')
+	print('Has:', Registry:contains(entity, Piece1))
+	print('Data:', Registry:ask(entity, Piece1))
 end
