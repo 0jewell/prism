@@ -2,6 +2,7 @@ local Types = require('./Types')
 type Piece<D = unknown> = Types.Piece<D>
 type UsedAs<D = unknown> = Types.UsedAs<unknown>
 
+type DataMap = Types.DataMap
 type Keys = Types.Keys
 
 local Pieces = {}
@@ -21,7 +22,7 @@ local OnAdd = Piece() :: Piece<OnAdd>
 type OnRemove = Types.OnRemove
 local OnRemove = Piece() :: Piece<OnRemove>
 
-local KeyMarker = Piece('lá ele')
+local KeyMarker = Piece()
 local BuiltInPiece = Piece()
 
 local function Key(
@@ -45,6 +46,12 @@ local function Is(
     return Pieces[piece] or false
 end
 
+local function Keys(
+    dataMap: DataMap
+): DataMap
+    return dataMap
+end
+
 local function From(constructor, ...): any
     local default = { ... }
 
@@ -58,6 +65,7 @@ return table.freeze {
     from = From,
     is = Is,
     key = Key,
+    keys = Keys,
 
     OnAdd = OnAdd,
     OnRemove = OnRemove,

@@ -3,10 +3,11 @@ local task = require('@lune/task')
 local Prism = require('../src/lib')
 local Piece = Prism.Piece
 local key = Prism.key
+local keys = Prism.keys
 
 local Registry = Prism.Registry()
 
-local Piece1, Piece2 = Piece('piece 1'), Piece('piece 2')
+local Piece1, Piece2 = Piece('piece 1'), Piece(10)
 
 local Query = Prism.Query { query = function() return Piece1, Piece2 end }
 
@@ -29,14 +30,8 @@ do
 	local entity = Registry:entity()
 
 	Registry:add(entity, Prism.OnAdd, function(entity, piece, data)
-		warn('=== TRAIT ===')
 		print(entity, piece, data)
 	end)
 
-	print('Adding piece 1 & 2')
-	Registry:add(entity, { key(Piece1, Piece2) })
-
-	warn('=== PIECE 1 ===')
-	print('Has:', Registry:contains(entity, Piece1))
-	print('Data:', Registry:ask(entity, Piece1))
+	Registry:add(entity, keys { [Piece1] = 'Piece', key(Piece2) })
 end
