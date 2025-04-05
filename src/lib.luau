@@ -10,18 +10,20 @@ local Query = require('./Query')
 export type Query<P... = ...any> = Types.Query<P...>
 
 local Piece = require('./Piece')
-local from = Piece.from
+local Key = Piece.key
+local From = Piece.from
 export type Piece<D = unknown> = Types.Piece<D>
+export type UsedAs<D = never> = Types.UsedAs<D>
 
 export type Data  = Types.Data
-export type UsedAs<D = never> = Types.UsedAs<D>
 
 return table.freeze {
     Registry = Registry.New,
     Query = Query.New,
     Piece = Piece.New,
 
-    from = from,
+    from = From,
+    key = Key,
     Clean = Clean,
 
     OnAdd = Piece.OnAdd,
