@@ -1,6 +1,7 @@
 local function MergeData<config, target>(
     config: config,
-    target: target
+    target: target,
+    fields: 'merge'?
 ): config & target
 
     assert(type(target) == 'table', 'Target must be a table.')
@@ -12,8 +13,8 @@ local function MergeData<config, target>(
             target[index] = default
         end
 
-        if typeof(config[index]) == 'table' then
-            target[index] = MergeData(config[index], target[index])
+        if fields and typeof(default) == 'table' then
+            target[index] = MergeData(default, target[index])
         end
     end
 
