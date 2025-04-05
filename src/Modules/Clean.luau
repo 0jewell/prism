@@ -1,6 +1,5 @@
 --!nolint LocalShadow
 --// from: https://github.com/dphfox/Fusion/blob/main/src/Memory/doCleanup.luau
-
 local Types = require('../Types')
 type Cleaning = Types.Cleaning
 

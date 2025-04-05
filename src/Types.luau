@@ -8,13 +8,19 @@ export type Cleaning =
     | thread
 
 export type Piece<D = unknown> = {
-    data: D,
+    data: D
 }
+
+export type Keys = typeof(setmetatable({} :: KeysFields, {} :: KeysImpl))
+
+type KeysFields = { [UsedAs]: Piece }
+type KeysImpl = {[Piece]: boolean}
 
 export type OnAdd = (entity: Entity, piece: Entity, data: unknown) -> ()
 export type OnRemove = (entity: Entity, piece: Entity) -> ()
 
 export type Entity = number
+export type EntityData = { data: any }
 
 export type UsedAs<D = unknown> = Entity | Piece<D>
 
@@ -55,14 +61,13 @@ type QueryFields<P...> = {
     traits: { TraitRecord<P...> },
     settings: QuerySettings<P...>
 }
-
 type QueryImpl<P...> = {
     __index: QueryImpl<P...>,
     New: (settings: QuerySettings<P...>) -> Query<P...>,
     trait: (self: Query<P...>, name: string, trait: (Data, P...) -> ()) -> Query<P...>
 }
 
-export type DeepTable<T> = T & { T }
+export type DataMap = { [UsedAs]: any }
 
 export type Registry = typeof(setmetatable({} :: RegistryFields, {} :: RegistryImpl))
 
@@ -76,7 +81,6 @@ type RegistryFields = {
     queryMaps: { [Query]: Bitmap },
     consumedQueries: { [Query]: { [Entity]: Cleaning } }
 }
-
 type RegistryImpl = {
     __index: RegistryImpl,
     New: () -> Registry,
@@ -84,9 +88,9 @@ type RegistryImpl = {
     entityAt: (self: Registry, at: number) -> Entity,
     cast: (self: Registry, ...UsedAs) -> ...Entity,
     pair: (self: Registry, relation: UsedAs, target: UsedAs) -> Entity,
-    include: (self: Registry, queries: { DeepTable<Query> }) -> (),
+    include: <Q...>(self: Registry, queries: { Query<Q...> }) -> (),
     match: (self: Registry, entity: UsedAs) -> (),
-    add: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>, data: D?) -> D?,
+    add: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D> | DataMap, data: D?) -> (D | DataMap)?,
     remove: (self: Registry, entity: UsedAs, piece: UsedAs) -> (),
     delete: (self: Registry, entity: UsedAs) -> (),
     contains: (self: Registry, entity: UsedAs, ...UsedAs) -> boolean,

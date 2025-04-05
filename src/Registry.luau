@@ -2,9 +2,11 @@
 --!optimize 2
 --!nolint LocalShadow
 local Piece = require('./Piece')
+local KeyMarker = Piece.KeyMarker
 local BuiltInPiece = Piece.BuiltInPiece
 local PrismOnAdd = Piece.OnAdd
 local PrismOnRemove = Piece.OnRemove
+local Is = Piece.is
 
 local Record = require('./Record')
 local Pair = require('./Pair')
@@ -19,7 +21,7 @@ type Entity = Types.Entity
 type Piece<D> = Types.Piece<D>
 
 type UsedAs<D = unknown> = Types.UsedAs<D>
-type DeepTable<T> = Types.DeepTable<T>
+type DataMap = Types.DataMap
 
 type Query<Q... = ...any> = Types.Query<Q...>
 
@@ -76,36 +78,43 @@ do
         return at
     end
 
+    local function Cast(
+        registry: Registry,
+        target: any
+    ): Entity?
+
+        if typeof(target) == 'number' then
+            return target
+        end
+
+        if typeof(target) ~= 'table' then
+            return
+        end
+
+        if not Is(target) then
+            return
+        end
+        
+        local cached = registry.cachedPieces[target]
+        if cached then return cached end
+
+        local entity = registry:entity()
+        registry.cachedPieces[target] = entity
+
+        return entity
+    end
+
     function Registry.cast(
         self: Registry,
         ...: UsedAs
     ): ...Entity
     
         local results = {}
-
-        local function casting(
-            target: UsedAs
-        ): Entity
-        
-            if typeof(target) == 'number' then
-                return target
-            end
-
-            if typeof(target) == 'table' then
-                local cached = self.cachedPieces[target]
-                if cached then return cached end
-
-                local entity = self:entity()
-                self.cachedPieces[target] = entity
-
-                return entity
-            end
-
-            error('Invalid entity: not piece or entity')
-        end
         
         for _, target in { ... } do
-            local casted = casting(target)
+            local casted = Cast(self, target)
+            assert(casted, 'Invalid entity: not piece or entity')
+
             table.insert(results, casted)
         end
         
@@ -142,17 +151,12 @@ do
         return map
     end
 
-    function Registry.include(
+    function Registry.include<Q...>(
         self: Registry,
-        queries: { DeepTable<Query> }
+        queries: { Query<Q...> }
     )
         for _, query in queries do
             assert(type(query) == 'table', 'Invalid query: must be a table')
-
-            if not query.trait then
-                local query: { DeepTable<Query> } = query :: any
-                return self:include(query)
-            end
 
             local priority = query.settings.priority
                 or error('Invalid query: must have priority')
@@ -253,55 +257,89 @@ do
         end
     end
 
-    function Registry.add<D>(
-        self: Registry,
+    local function Add<D>(
+        registry: Registry,
         entity: UsedAs,
         piece: UsedAs<D>,
         data: D?
-    ): D?
+    ): Piece<D>?
 
-        if self:contains(entity, piece) then return end
-        
-        local entity, castedPiece = self:cast(entity, piece)
+        if registry:contains(entity, piece) then
+            return
+        end
 
-        local records = self.records
+        local entity, castedPiece = registry:cast(entity, piece)
 
-        local record = records[entity]
-        local pieceRecord = records[castedPiece]
+        local records = registry.records
+        local storage = registry.storage
 
-        Record.append(record.bitmap, pieceRecord)
-
-        local storage = self.storage
+        do
+            local record = records[entity]
+            local pieceRecord = records[castedPiece]
+            Record.append(record.bitmap, pieceRecord)
+        end
 
         if not storage[entity] then
             storage[entity] = {}
         end
 
-        local entityStorage = storage[entity]
-        
-        if not data and typeof(piece) == 'table' and piece.data then
-            local default = piece.data
-        
-            if typeof(default) == 'table' then
-                local newData = Data.merge(default, {})
-                data = Data.transform(newData)
+        if not data and typeof(piece) == 'table' then
+            local defaultData = piece.data
+
+            if typeof(defaultData) == 'table' then
+                local postData = Data.merge(defaultData, {}, 'merge')
+                data = Data.transform(postData)
             else
-                data = default
+                data = defaultData
             end
         end
 
+        local entityStorage = storage[entity]
+
         if data then
-            entityStorage[castedPiece] = { data = data }
+            entityStorage[castedPiece] = Piece.New(data)
         end
 
-        local onAdd = self:ask(entity, PrismOnAdd)
+        local onAdd = registry:ask(entity, PrismOnAdd)
         if onAdd then
             onAdd.data(entity, castedPiece, data)
         end
 
-        self:match(entity)
+        return entityStorage[castedPiece]
+    end
 
-        return data
+    function Registry.add<D>(
+        self: Registry,
+        entity: UsedAs,
+        piece: UsedAs<D> | DataMap,
+        data: D?
+    ): D? | DataMap?
+
+        local isPiece = Cast(self, piece)
+        if isPiece then
+            local piece = piece :: UsedAs
+            local postData = Add(self, entity, piece, data)
+
+            self:match(entity)
+            return postData
+        end
+
+        local pieces = piece :: { [UsedAs]: never }
+        local dataMap = {}
+
+        for piece, preData in pieces do
+            if typeof(preData) == 'table' and getmetatable(preData) == KeyMarker then
+                Data.merge(preData, pieces)
+                continue
+            end
+
+            local data = preData ~= KeyMarker and preData
+            local postData = Add(self, entity, piece, data)
+            dataMap[piece] = postData
+        end
+
+        self:match(entity)
+        return dataMap
     end
 
     function Registry.remove<D>(
@@ -313,10 +351,11 @@ do
 
         local records = self.records
 
-        local record = records[entity]
-        local pieceRecord = records[piece]
-
-        Record.unappend(record.bitmap, pieceRecord)
+        do
+            local record = records[entity]
+            local pieceRecord = records[piece]
+            Record.unappend(record.bitmap, pieceRecord)
+        end
 
         local storage = self.storage
 
