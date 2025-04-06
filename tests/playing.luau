@@ -34,4 +34,8 @@ do
 	end)
 
 	Registry:add(entity, tags { [Piece1] = 'Piece', tag(Piece2) })
+
+
+	Registry:remove(entity, Piece1, Piece2)
+	print(Registry:contains(entity, Piece1, Piece2))
 end

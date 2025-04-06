@@ -11,10 +11,9 @@ export type Piece<D = unknown> = {
     data: D
 }
 
-export type Tags = typeof(setmetatable({} :: TagsFields, {} :: TagsImpl))
+export type Tags = typeof(setmetatable({} :: TagsFields, {} :: Piece))
 
 type TagsFields = { [UsedAs]: Piece }
-type TagsImpl = {[Piece]: boolean}
 
 export type OnAdd = (entity: Entity, piece: Entity, data: unknown) -> ()
 export type OnRemove = (entity: Entity, piece: Entity) -> ()
@@ -28,7 +27,7 @@ export type Word = number
 export type Mask = number
 
 export type Bitmap = { [Word]: Mask }
-export type DataMap = { [UsedAs]: any }
+export type DataMap = { [UsedAs]: any | Tags }
 
 export type Record = {
     word: Word,
@@ -90,7 +89,7 @@ type RegistryImpl = {
     include: <Q...>(self: Registry, queries: { Query<Q...> }) -> (),
     match: (self: Registry, entity: UsedAs) -> (),
     add: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D> | DataMap, data: D?) -> (D | DataMap)?,
-    remove: (self: Registry, entity: UsedAs, piece: UsedAs) -> (),
+    remove: (self: Registry, entity: UsedAs, ...UsedAs) -> (),
     delete: (self: Registry, entity: UsedAs) -> (),
     contains: (self: Registry, entity: UsedAs, ...UsedAs) -> boolean,
     ask: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>) -> Piece<D>?

@@ -18,7 +18,7 @@ local Types = require('./Types')
 type Cleaning = Types.Cleaning
 
 type Entity = Types.Entity
-type Piece<D> = Types.Piece<D>
+type Piece<D = unknown> = Types.Piece<D>
 
 type UsedAs<D = unknown> = Types.UsedAs<D>
 type DataMap = Types.DataMap
@@ -313,9 +313,10 @@ do
         entity: UsedAs,
         piece: UsedAs<D> | DataMap,
         data: D?
-    ): D? | DataMap?
+    ): (D | DataMap)?
 
         local isPiece = Cast(self, piece)
+
         if isPiece then
             local piece = piece :: UsedAs<D>
             local postData = Add(self, entity, piece, data)
@@ -324,7 +325,7 @@ do
             return postData
         end
 
-        local pieces = piece :: { [UsedAs]: never }
+        local pieces = piece :: DataMap
         local dataMap = {}
 
         for piece, preData in pieces do
@@ -342,14 +343,14 @@ do
         return dataMap
     end
 
-    function Registry.remove<D>(
-        self: Registry,
+    local function Remove(
+        registry: Registry,
         entity: UsedAs,
-        piece: UsedAs<D>
+        piece: UsedAs
     )
-        local entity, piece = self:cast(entity, piece)
+        local entity, piece = registry:cast(entity, piece)
 
-        local records = self.records
+        local records = registry.records
 
         do
             local record = records[entity]
@@ -357,7 +358,7 @@ do
             Record.unappend(record.bitmap, pieceRecord)
         end
 
-        local storage = self.storage
+        local storage = registry.storage
 
         local entityStorage = storage[entity]
         if not entityStorage then return end
@@ -369,9 +370,20 @@ do
             entityStorage[piece] = nil
         end
 
-        local onRemove = self:ask(entity, PrismOnRemove)
+        local onRemove = registry:ask(entity, PrismOnRemove)
         if onRemove then
             onRemove.data(entity, piece)
+        end
+    end
+
+    function Registry.remove<D>(
+        self: Registry,
+        entity: UsedAs,
+        ...: UsedAs
+    )
+        for index = 1, select('#', ...) do
+            local piece = select(index, ...)
+            Remove(self, entity, piece)
         end
 
         self:match(entity)
@@ -391,9 +403,12 @@ do
         local entityStorage = storage[castedEntity]
 
         if entityStorage then
+            local pieces = {}
+
             for piece in entityStorage do
-                self:remove(entity, piece)
+                table.insert(pieces, piece)
             end
+            self:remove(entity, unpack(pieces))
 
             storage[castedEntity] = nil
         end
@@ -416,13 +431,15 @@ do
         local entity = self:cast(entity)
 
         local records = self.records
-
+        
         local record = records[entity]
-        if not record then return false end
+        if not record then
+            return false
+        end
 
-        for i = 1, select('#', ...) do
+        for index = 1, select('#', ...) do
 
-            local piece = select(i, ...)
+            local piece = select(index, ...)
             local castedPiece = self:cast(piece)
             
             local pieceRecord = records[castedPiece]
