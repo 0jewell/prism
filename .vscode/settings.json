@@ -3,5 +3,6 @@
   "luau-lsp.sourcemap.autogenerate": true,
   "luau-lsp.platform.type": "roblox",
   "luau-lsp.fflags.sync": true,
-  "luau-lsp.sourcemap.enabled": true
+  "luau-lsp.sourcemap.enabled": true,
+  "luau-lsp.sourcemap.useVSCodeWatcher": true
 }

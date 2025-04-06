@@ -2,8 +2,8 @@ local task = require('@lune/task')
 
 local Prism = require('../src/lib')
 local Piece = Prism.Piece
-local key = Prism.key
-local keys = Prism.keys
+local tag = Prism.tag
+local tags = Prism.tags
 
 local Registry = Prism.Registry()
 
@@ -33,5 +33,5 @@ do
 		print(entity, piece, data)
 	end)
 
-	Registry:add(entity, keys { [Piece1] = 'Piece', key(Piece2) })
+	Registry:add(entity, tags { [Piece1] = 'Piece', tag(Piece2) })
 end

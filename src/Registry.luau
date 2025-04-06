@@ -2,11 +2,11 @@
 --!optimize 2
 --!nolint LocalShadow
 local Piece = require('./Piece')
-local KeyMarker = Piece.KeyMarker
+local TagMarker = Piece.TagMarker
 local BuiltInPiece = Piece.BuiltInPiece
 local PrismOnAdd = Piece.OnAdd
 local PrismOnRemove = Piece.OnRemove
-local Is = Piece.is
+local IsPiece = Piece.is
 
 local Record = require('./Record')
 local Pair = require('./Pair')
@@ -91,7 +91,7 @@ do
             return
         end
 
-        if not Is(target) then
+        if not IsPiece(target) then
             return
         end
         
@@ -317,7 +317,7 @@ do
 
         local isPiece = Cast(self, piece)
         if isPiece then
-            local piece = piece :: UsedAs
+            local piece = piece :: UsedAs<D>
             local postData = Add(self, entity, piece, data)
 
             self:match(entity)
@@ -328,12 +328,12 @@ do
         local dataMap = {}
 
         for piece, preData in pieces do
-            if typeof(preData) == 'table' and getmetatable(preData) == KeyMarker then
+            if typeof(preData) == 'table' and getmetatable(preData) == TagMarker then
                 Data.merge(preData, pieces)
                 continue
             end
 
-            local data = preData ~= KeyMarker and preData
+            local data = preData ~= TagMarker and preData
             local postData = Add(self, entity, piece, data)
             dataMap[piece] = postData
         end

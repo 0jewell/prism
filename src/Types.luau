@@ -11,10 +11,10 @@ export type Piece<D = unknown> = {
     data: D
 }
 
-export type Keys = typeof(setmetatable({} :: KeysFields, {} :: KeysImpl))
+export type Tags = typeof(setmetatable({} :: TagsFields, {} :: TagsImpl))
 
-type KeysFields = { [UsedAs]: Piece }
-type KeysImpl = {[Piece]: boolean}
+type TagsFields = { [UsedAs]: Piece }
+type TagsImpl = {[Piece]: boolean}
 
 export type OnAdd = (entity: Entity, piece: Entity, data: unknown) -> ()
 export type OnRemove = (entity: Entity, piece: Entity) -> ()
@@ -28,6 +28,7 @@ export type Word = number
 export type Mask = number
 
 export type Bitmap = { [Word]: Mask }
+export type DataMap = { [UsedAs]: any }
 
 export type Record = {
     word: Word,
@@ -66,8 +67,6 @@ type QueryImpl<P...> = {
     New: (settings: QuerySettings<P...>) -> Query<P...>,
     trait: (self: Query<P...>, name: string, trait: (Data, P...) -> ()) -> Query<P...>
 }
-
-export type DataMap = { [UsedAs]: any }
 
 export type Registry = typeof(setmetatable({} :: RegistryFields, {} :: RegistryImpl))
 

@@ -3,7 +3,7 @@ type Piece<D = unknown> = Types.Piece<D>
 type UsedAs<D = unknown> = Types.UsedAs<unknown>
 
 type DataMap = Types.DataMap
-type Keys = Types.Keys
+type Tags = Types.Tags
 
 local Pieces = {}
 local function Piece<D>(
@@ -22,21 +22,21 @@ local OnAdd = Piece() :: Piece<OnAdd>
 type OnRemove = Types.OnRemove
 local OnRemove = Piece() :: Piece<OnRemove>
 
-local KeyMarker = Piece()
+local TagMarker = Piece()
 local BuiltInPiece = Piece()
 
-local function Key(
+local function Tag(
     ...: UsedAs
-): Keys
+): Tags
 
-    local keys = {}
+    local tags = {}
 
     for index = 1, select('#', ...) do
         local piece = select(index, ...)
-        keys[piece] = KeyMarker
+        tags[piece] = TagMarker
     end
 
-    return setmetatable(keys, KeyMarker)
+    return setmetatable(tags, TagMarker)
 end
 
 local function Is(
@@ -46,7 +46,7 @@ local function Is(
     return Pieces[piece] or false
 end
 
-local function Keys(
+local function Tags(
     dataMap: DataMap
 ): DataMap
     return dataMap
@@ -64,11 +64,11 @@ return table.freeze {
     New = Piece,
     from = From,
     is = Is,
-    key = Key,
-    keys = Keys,
+    tag = Tag,
+    tags = Tags,
 
     OnAdd = OnAdd,
     OnRemove = OnRemove,
-    KeyMarker = KeyMarker,
+    TagMarker = TagMarker,
     BuiltInPiece = BuiltInPiece
 }

@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add `pair` function to the registry
 - Add `OnAdd` piece hook
 - Add `OnRemove` piece hook
-- Add `key` function to library
+- Add `tag` function to library
+- Add `tags` function to library
 
 ### Changes
 
