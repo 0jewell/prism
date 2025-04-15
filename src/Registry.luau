@@ -246,6 +246,22 @@ do
         end
     end
 
+    function Registry.view(
+        self: Registry,
+        query: Query
+    ): { Entity }
+        
+        local cachedEntities = self.consumedQueries[query]
+        if not cachedEntities then return {} end
+
+        local cache = {}
+        for entity in pairs(cachedEntities)  do
+            table.insert(cache, entity)
+        end
+
+        return cache
+    end
+
     function Registry.match(
         self: Registry,
         entity: UsedAs
@@ -366,7 +382,18 @@ do
         local storedData = entityStorage[piece]
         
         if storedData then
-            Clean(storedData)
+            local data = storedData.data
+
+            if typeof(data) == 'table' then
+                for index, value in data do
+                    Clean(value)
+                    data[index] = nil
+                end
+            else
+                Clean(data)
+                storedData.data = nil
+            end
+
             entityStorage[piece] = nil
         end
 

@@ -35,6 +35,8 @@ do
 
 	Registry:add(entity, tags { [Piece1] = 'Piece', tag(Piece2) })
 
+	local viewing = Registry:view(Query)
+	print(viewing)
 
 	Registry:remove(entity, Piece1, Piece2)
 	print(Registry:contains(entity, Piece1, Piece2))

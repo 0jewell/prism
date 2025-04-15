@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Add `cast` function to the registry
 - Add `pair` function to the registry
+- Add `view` function to the registry
 - Add `OnAdd` piece hook
 - Add `OnRemove` piece hook
 - Add `tag` function to library

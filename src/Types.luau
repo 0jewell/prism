@@ -92,7 +92,8 @@ type RegistryImpl = {
     remove: (self: Registry, entity: UsedAs, ...UsedAs) -> (),
     delete: (self: Registry, entity: UsedAs) -> (),
     contains: (self: Registry, entity: UsedAs, ...UsedAs) -> boolean,
-    ask: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>) -> Piece<D>?
+    ask: <D>(self: Registry, entity: UsedAs, piece: UsedAs<D>) -> Piece<D>?,
+    view: (self: Registry, query: Query) -> { Entity }
 }
 
 return {}
