@@ -829,16 +829,20 @@ If it later meets the conditions again, the trait is reapplied.</p>
 <h3 id="trait-cleanup">Trait Cleanup</h3>
 <p>Traits can be added or removed dynamically, but removing a trait does not automatically revert changes.
 You must manually handle the cleanup of any data associated with it.</p>
-<div class="highlight"><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="nv">part</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">part</span>
+<span class="w">    </span><span class="kr">end</span>
+<span class="p">}</span>
 
-<span class="w">    </span><span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Create part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
-<span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
+<span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Create part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
+<span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
 
-<span class="w">        </span><span class="c1">-- Store the instance for cleanup when the trait is removed</span>
-<span class="w">        </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">data</span><span class="p">.</span><span class="py">cleaning</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">-- Store the instance for cleanup when the trait is removed</span>
+<span class="w">    </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">data</span><span class="p">.</span><span class="py">cleaning</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
 
-<span class="w">        </span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">instance</span>
-<span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">instance</span>
+<span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Modular Code</p>
@@ -848,21 +852,24 @@ From now on, we will follow this approach.</p>
 <h3 id="trait-execution-order">Trait Execution Order</h3>
 <p>A single query can have multiple traits.
 Traits are executed in the order they are defined within the query.</p>
-<div class="highlight"><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="nv">part</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">part</span>
+<span class="w">    </span><span class="kr">end</span>
+<span class="p">}</span>
+<span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Create part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
+<span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
 
-<span class="w">    </span><span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Create part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
-<span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">-- Store the instance for cleanup when the Trait is removed</span>
+<span class="w">    </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">data</span><span class="p">.</span><span class="py">cleaning</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
 
-<span class="w">        </span><span class="c1">-- Store the instance for cleanup when the Trait is removed</span>
-<span class="w">        </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">data</span><span class="p">.</span><span class="py">cleaning</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">instance</span>
+<span class="kr">end</span><span class="p">)</span>
 
-<span class="w">        </span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">instance</span>
-<span class="w">    </span><span class="kr">end</span><span class="p">)</span>
-
-<span class="w">    </span><span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Print part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
-<span class="w">        </span><span class="nb">print</span><span class="p">(</span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="p">)</span>
-<span class="w">        </span><span class="c1">--&gt; &#39;Part&#39;</span>
-<span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Print part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">print</span><span class="p">(</span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">--&gt; &#39;Part&#39;</span>
+<span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
 
 

@@ -711,20 +711,11 @@
 <p class="admonition-title">Freezed data</p>
 <p>The returned table is freezed.</p>
 </div>
-<div class="highlight"><span class="filename">Prism.luau</span><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">Data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Modules</span><span class="p">.</span><span class="nv">Data</span><span class="p">)</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">Clean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Modules</span><span class="p">.</span><span class="nv">Clean</span><span class="p">)</span>
-
-<span class="kd">local</span><span class="w"> </span><span class="nv">Registry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Registry</span><span class="p">)</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">Query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Query</span><span class="p">)</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">Piece</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Piece</span><span class="p">)</span>
-
-<span class="kr">return</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">Registry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">.</span><span class="nv">New</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">Query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Query</span><span class="p">.</span><span class="nv">New</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">Piece</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Piece</span><span class="p">.</span><span class="nv">New</span><span class="p">,</span>
-
-<span class="w">    </span><span class="nv">from</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Piece</span><span class="p">.</span><span class="nv">from</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">Clean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Clean</span>
+<div class="highlight"><span class="filename">Prism.luau</span><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nv">Registry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Registry</span><span class="p">),</span>
+<span class="w">    </span><span class="nv">Query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Query</span><span class="p">),</span>
+<span class="w">    </span><span class="nv">Piece</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Piece</span><span class="p">),</span>
+<span class="w">    </span><span class="nv">Clean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">script</span><span class="p">.</span><span class="nv">Modules</span><span class="p">.</span><span class="nv">Clean</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
 
