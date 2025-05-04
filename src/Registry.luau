@@ -207,7 +207,14 @@ do
                 consumed[query] = consumed[query] or {}
                 consumed[query][entity] = cleaning
 
-                traitRecord.trait(data, unpack(pieces))
+                if query.settings.async then
+                    local coroutine = task.spawn(
+                        traitRecord.trait, data, unpack(pieces)
+                    )
+                    table.insert(data.cleaning, coroutine)
+                else
+                    traitRecord.trait(data, unpack(pieces))
+                end
             end
         end
 
@@ -358,8 +365,8 @@ do
         self:match(entity)
         return dataMap
     end
-
-    local function Remove(
+    
+    local function UnnapendDataFromEntity(
         registry: Registry,
         entity: UsedAs,
         piece: UsedAs
@@ -373,6 +380,14 @@ do
             local pieceRecord = records[piece]
             Record.unappend(record.bitmap, pieceRecord)
         end
+    end
+
+    local function Remove(
+        registry: Registry,
+        entity: UsedAs,
+        piece: UsedAs
+    )
+        local entity, piece = registry:cast(entity, piece)
 
         local storage = registry.storage
 
@@ -410,10 +425,10 @@ do
     )
         for index = 1, select('#', ...) do
             local piece = select(index, ...)
+            UnnapendDataFromEntity(self, entity, piece)
+            self:match(entity)
             Remove(self, entity, piece)
         end
-
-        self:match(entity)
     end
 
     function Registry.delete(
@@ -484,7 +499,7 @@ do
         self: Registry,
         entity: UsedAs,
         piece: UsedAs<D>
-    ): Piece<D>?
+    ): Piece<D>
 
         local entity = self:cast(entity)
 

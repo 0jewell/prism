@@ -39,7 +39,8 @@ export type Priority = number
 
 export type QuerySettings<P...> = {
     query: () -> P...,
-    priority: number?
+    priority: number?,
+    async: boolean?
 }
 
 export type Data = {

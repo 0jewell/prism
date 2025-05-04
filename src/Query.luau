@@ -1,7 +1,8 @@
 local Data = require('./Modules/Data')
 
 local DefaultSettings = {
-    priority = 0
+    priority = 0,
+    async = false
 }
 
 local Types = require('./Types')

@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add `OnRemove` piece hook
 - Add `tag` function to library
 - Add `tags` function to library
+- Add `query.async` option to querySettings
 
 ### Changes
 
