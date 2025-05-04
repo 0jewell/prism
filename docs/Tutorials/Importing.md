@@ -8,19 +8,10 @@ When using Prism as a variable in your code, it contains a dictionary with the f
     The returned table is freezed.
 
 ```luau title="Prism.luau"
-local Data = require(script.Modules.Data)
-local Clean = require(script.Modules.Clean)
-
-local Registry = require(script.Registry)
-local Query = require(script.Query)
-local Piece = require(script.Piece)
-
 return {
-    Registry = Registry.New,
-    Query = Query.New,
-    Piece = Piece.New,
-
-    from = Piece.from,
-    Clean = Clean
+    Registry = require(script.Registry),
+    Query = require(script.Query),
+    Piece = require(script.Piece),
+    Clean = require(script.Modules.Clean)
 }
 ```

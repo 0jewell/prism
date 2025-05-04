@@ -36,16 +36,20 @@ Traits can be added or removed dynamically, but removing a trait does not automa
 You must manually handle the cleanup of any data associated with it.
 
 ```lua
-return Prism.Query { query = function() return part end }
+return Prism.Query {
+    query = function()
+        return part
+    end
+}
 
-    :trait('Create part', function(data, part)
-        local instance = Instance.new('Part')
+:trait('Create part', function(data, part)
+    local instance = Instance.new('Part')
 
-        -- Store the instance for cleanup when the trait is removed
-        table.insert(data.cleaning, instance)
+    -- Store the instance for cleanup when the trait is removed
+    table.insert(data.cleaning, instance)
 
-        part.data.instance = instance
-    end)
+    part.data.instance = instance
+end)
 ```
 
 !!! note "Modular Code"
@@ -57,19 +61,22 @@ A single query can have multiple traits.
 Traits are executed in the order they are defined within the query.
 
 ```lua
-return Prism.Query { query = function() return part end }
+return Prism.Query {
+    query = function()
+        return part
+    end
+}
+:trait('Create part', function(data, part)
+    local instance = Instance.new('Part')
 
-    :trait('Create part', function(data, part)
-        local instance = Instance.new('Part')
+    -- Store the instance for cleanup when the Trait is removed
+    table.insert(data.cleaning, instance)
 
-        -- Store the instance for cleanup when the Trait is removed
-        table.insert(data.cleaning, instance)
+    part.data.instance = instance
+end)
 
-        part.data.instance = instance
-    end)
-
-    :trait('Print part', function(data, part)
-        print(part.data.instance)
-        --> 'Part'
-    end)
+:trait('Print part', function(data, part)
+    print(part.data.instance)
+    --> 'Part'
+end)
 ```

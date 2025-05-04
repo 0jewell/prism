@@ -20,10 +20,18 @@ local health = Prism.Piece {
     max = 100,
     current = 100
 }
+local damaged = Prism.Piece(10)
 
-return Prism.Query { query = function() return health end }
+return Prism.Query {
+    query = function()
+        return health, damaged
+    end
+}
+:trait('Update Health', function(data, health, damaged)
+    -- Deal damage
+    health.data.current = math.max(0, health.data.current - damaged.data)
 
-:trait('Update Health', function(data, health)
-    -- Code logic here
+    -- Remove the damaged piece
+    data.registry:remove(data.entity, damaged)
 end)
 ```
