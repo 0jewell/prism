@@ -5,7 +5,7 @@ type UsedAs<D = unknown> = Types.UsedAs<unknown>
 type DataMap = Types.DataMap
 type Tags = Types.Tags
 
-local Pieces = {}
+local Pieces = setmetatable({}, {__mode = 'k'})
 local function Piece<D>(
     default: D?
 ): Piece<D>
