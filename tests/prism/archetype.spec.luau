@@ -16,7 +16,7 @@ return function(testing: testing)
 
 			local record = w.records[e]
 			expect(record).exists()
-			expect(record.archetype).is(w.root_archetype)
+			expect(record.archetype.hash).is('')
 			expect(record.row).is(1)
 		end)
 
@@ -28,7 +28,7 @@ return function(testing: testing)
 			w:insert(e, position, { x = 1, y = 2 })
 
 			local record = w.records[e]
-			expect(record.archetype).never_is(w.root_archetype)
+			expect(record.archetype.hash).never_is('')
             
 			local val = w:ask(e, position)
 			expect(val).never_is(nil)
