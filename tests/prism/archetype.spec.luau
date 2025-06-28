@@ -91,5 +91,25 @@ return function(testing: testing)
 
 			expect(w.records[e1].archetype).is(w.records[e2].archetype)
 		end)
+
+		test('should register archetype with correct subs using component index', function()
+			local w = world.new()
+			local A = w:spawn()
+			local B = w:spawn()
+			local C = w:spawn()
+
+			w:query(A, B) (function() end)
+			w:query(A, B, C) (function() end)
+
+			local abc = w.archetypes['1_2_3']
+			local ab = w.archetypes['1_2']
+
+			expect(abc).exists()
+			expect(#abc.subs).is(1)
+			expect(abc.subs[1]).is(ab)
+
+			-- check inverse
+			expect(#ab.subs).is(0)
+		end)
 	end)
 end

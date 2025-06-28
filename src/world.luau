@@ -32,13 +32,14 @@ export type record = {
 }
 
 local insert, remove = table.insert, table.remove
+local find = table.find
 
 -- this
 local world = {}
 world.__index = world
 
 -- constructor
-function world.new()
+function world.new(): world
     local self = {
         next_id = 1,
         records = {},
@@ -149,6 +150,13 @@ local function ensure_archetype(
         for _, other_archetype: archetype in pairs(possible_subs) do
             local other_track = other_archetype.track
 
+            -- avoid duplicated sub_archetypes
+            -- in case components A and B have the same archetype
+            -- on its index
+            if find(new_archetype.subs, other_archetype) then
+                continue
+            end
+
             if other_archetype ~= new_archetype and subset(other_track, track) then
                 insert(new_archetype.subs, other_archetype)
             end
@@ -191,17 +199,17 @@ local function find_insert(
     track: { entity },
     to_add: entity
 ): number
-	for i, id in track do
+    for i, id in track do
 
-		if id == to_add then
-			return -1
-		end
-		if id > to_add then
-			return i
-		end
-	end
+        if id == to_add then
+            return -1
+        end
+        if id > to_add then
+            return i
+        end
+    end
 
-	return #track + 1
+    return #track + 1
 end
 
 local function archetype_transition(
@@ -402,7 +410,7 @@ local function world_insert<D>(
     archetype_swap_remove(world, entity, old_row, old_archetype)
 
     -- only remove scopes if the new archetype no longer satisfies the old one
-    if not table.find(new_archetype.subs, old_archetype) then
+    if not find(new_archetype.subs, old_archetype) then
         archetype_query_cleanup(world, entity, old_archetype)
     end
 
