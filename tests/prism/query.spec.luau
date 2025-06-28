@@ -34,7 +34,8 @@ return function(testing: testing)
             expect(calls[e2]).never_is(1)
 
             local archetype = w.records[e1].archetype
-            local scopes = archetype.scopes
+            local state = w.states[archetype.hash]
+            local scopes = state.scopes
             expect(scopes).exists()
             expect(scopes[e1]).exists()
             expect(#scopes[e1]).is(1)
