@@ -9,11 +9,6 @@ export type query = never
 type column = { unknown }
 type row = i53
 
---[[
-se row == 5
-a data da entidade está em columns[componente][5]
-]]
-
 export type archetype = {
     track: { entity },
     hash: string,
@@ -23,32 +18,19 @@ export type archetype = {
     queries: { query }
 }
 
---[[
-archetype.columns_map = {
-    [Position] = archetype.columns[1],
-    [Velocity] = archetype.columns[2],
-    ...
-}
-
-archetype.columns = {
-    [Position] = { pos1, pos2, pos3, ... },     -- coluna do componente Position
-    [Velocity] = { vel1, vel2, vel3, ... },     -- coluna do componente Velocity
-    ...
-}
-]]
-
 export type record = {
     archetype: archetype,
     row: number
 }
 
-local insert = table.insert
+local insert, remove = table.insert, table.remove
 
 -- this
 local world = {}
+world.__index = world
 
 -- constructor
-function world.new(): world
+function world.new()
     local self = {
         next_id = 1,
         records = {},
@@ -62,9 +44,8 @@ function world.new(): world
             queries = {}
         }
     }
-    local metatable = { __index = world }
-    setmetatable(self, metatable)
-
+    
+    setmetatable(self, world)
     return self
 end
 
@@ -72,16 +53,34 @@ function ensure_archetype(
     world: world,
     track: { entity }
 )
-    local archetype = {
-        hash = '',
-        track = {},
-        entities = {},
-        columns = {},
-        columns_map = {},
-        queries = {}
-    }
+    -- sort track
+    table.sort(track)
 
-    world.archetypes[archetype.hash] = archetype
+    -- generate archetype identifier
+    local hash = table.concat(track, '_')
+    local archetype = world.archetypes[hash]
+
+    if archetype == nil then
+        local new_archetype = {
+            hash = hash,
+            track = track,
+            entities = {},
+            columns = {},
+            columns_map = {},
+            queries = {},
+        }
+
+        -- initialize archetype component column
+        for _, component in ipairs(track) do
+            local column = {}
+            new_archetype.columns[component] = column
+            new_archetype.columns_map[component] = column
+        end
+
+        world.archetypes[hash] = new_archetype
+        return new_archetype
+    end
+
     return archetype
 end
 
@@ -111,19 +110,124 @@ local function ensure_record(
     return record
 end
 
-local function spawn_entity(world: world)
+local function archetype_transition(
+    world: world,
+    component: entity,
+    old_archetype: archetype
+): archetype
+    if old_archetype.columns_map[component] then
+        return old_archetype
+    end
+
+    local new_track = {}
+    for _, id in ipairs(old_archetype.track) do
+        insert(new_track, id)
+    end
+    insert(new_track, component)
+
+    -- create a new archetype with the new tracked components
+    return ensure_archetype(world, new_track)
+end
+
+local function archetype_swap_remove(
+    world: world,
+    entity: entity,
+    old_row: row,
+    old_archetype: archetype
+)
+    local entities = old_archetype.entities
+    local last_index = #entities
+    local last_entity = entities[last_index]
+
+    -- swap the last entity into the same slot
+    -- unless it's the same entity
+    if entity ~= last_entity then
+        entities[old_row] = last_entity
+
+        -- update the record of the moved_entity
+        local moved_record = world.records[last_entity]
+        moved_record.row = old_row
+
+        for _, id in ipairs(old_archetype.track) do
+            local column = old_archetype.columns_map[id]
+            column[old_row] = column[last_index]
+        end
+    end
+
+    -- remove last entity and cleanup its columns
+    remove(entities, last_index)
+
+    for _, id in ipairs(old_archetype.track) do
+        local column = old_archetype.columns_map[id]
+        column[last_index] = nil
+    end
+end
+
+local function world_insert<D>(
+    world: world,
+    entity: entity,
+    component: entity,
+    data: D?
+): D?
+    local record = ensure_record(world, entity)
+    assert(record, 'entity does not exist')
+
+    local old_archetype = record.archetype
+    local old_row = record.row
+
+    local new_archetype = archetype_transition(world, component, old_archetype)
+
+    -- if the entity is on the correct archetype
+    -- just rewrite its value
+    if old_archetype == new_archetype then
+        local column = old_archetype.columns_map[component]
+
+        column[old_row] = data
+        return data
+    end
+
+    local new_row = #new_archetype.entities + 1
+    insert(new_archetype.entities, entity)
+
+    -- move entity's data to the new archetype
+    for _, id in ipairs(new_archetype.track) do
+        local column = new_archetype.columns_map[id]
+
+        if id == component then
+            column[new_row] = data
+        else
+            local old_column = old_archetype.columns_map[id]
+            column[new_row] = old_column and old_column[old_row] or nil
+        end
+    end
+
+    -- update entity record
+    world.records[entity] = {
+        archetype = new_archetype,
+        row = new_row
+    }
+
+    -- remove entity from the old archetype
+    archetype_swap_remove(world, entity, old_row, old_archetype)
+
+    return data
+end
+
+local function world_spawn(world: world)
     local next_id = world.next_id
 
     ensure_record(world, next_id)
+
+    world.next_id += 1
     return next_id
 end
 
 local function field(
-    entity: entity,
+    component: entity,
     columns_map: { [row]: column },
     row: row
-): unknown?
-    local column = columns_map[row]
+): any?
+    local column = columns_map[component]
     
     if column == nil then
         return nil
@@ -132,12 +236,12 @@ local function field(
     return column[row]
 end
 
-function world_ask(
+local function world_ask(
     world: world,
     entity: entity,
     component: entity
-): unknown?
-    local record = world.records[entity]
+): any?
+    local record = ensure_record(world, entity)
     local archetype = record.archetype
 
     if archetype == nil then
@@ -147,21 +251,15 @@ function world_ask(
     local columns_map = archetype.columns_map
     local row = record.row
 
-    return field(entity, columns_map, row)
+    return field(component, columns_map, row)
 end
 
-type world_fields = {
-    next_id: number,
-    records: { [entity]: record },
-    archetypes: { [string]: archetype },
-    root_archetype: archetype
-}
+export type world = typeof(world.new())
 
-type world_impl = {
-    __index: world_impl,
-    new: () -> world
-}
-
-export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
+do
+    world.insert = world_insert
+    world.ask = world_ask
+    world.spawn = world_spawn 
+end
 
 return world
