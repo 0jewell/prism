@@ -3,11 +3,13 @@ export type entity = number
 type i53 = number
 type i24 = number
 
--- to do
-export type query = never
+type scope = { unknown }
+export type trait = (id: entity, scope: scope) -> ()
 
 type column = { unknown }
 type row = i53
+
+type set<T> = { [T]: true }
 
 export type archetype = {
     track: { entity },
@@ -15,7 +17,10 @@ export type archetype = {
     entities: { entity },
     columns: { column },
     columns_map: { [row]: column },
-    queries: { query }
+    queries: { trait },
+    consumed: { [trait]: set<entity> },
+    subs: { archetype },
+    scopes: { [entity]: scope }
 }
 
 export type record = {
@@ -34,31 +39,49 @@ function world.new()
     local self = {
         next_id = 1,
         records = {},
-        archetypes = {},
-        root_archetype = {
-            hash = '',
-            track = {},
-            entities = {},
-            columns = {},
-            columns_map = {},
-            queries = {}
-        }
+        archetypes = {}
     }
     
     setmetatable(self, world)
     return self
 end
 
-function ensure_archetype(
+local function subset<A, B>(
+    sub: { A | B }, 
+    sup: { B | A }
+): boolean
+    local i, j = 1, 1
+
+    -- traverse both lists
+    while i <= #sub and j <= #sup do
+        if sub[i] == sup[j] then
+            -- found matching element, advance both pointers
+            i += 1
+            j += 1
+        elseif sub[i] < sup[j] then
+            -- sub[i] is less than sup[j], which means it can't be in sup
+            return false
+        else
+            -- keep scanning sup for a match
+            j += 1
+        end
+    end
+
+    -- ff we've checked all elements in sub, it's a subset
+    return i > #sub
+end
+
+local function ensure_archetype(
     world: world,
     track: { entity }
-)
+): archetype
     -- sort track
     table.sort(track)
 
     -- generate archetype identifier
     local hash = table.concat(track, '_')
-    local archetype = world.archetypes[hash]
+    local archetypes = world.archetypes
+    local archetype = archetypes[hash]
 
     if archetype == nil then
         local new_archetype = {
@@ -68,6 +91,9 @@ function ensure_archetype(
             columns = {},
             columns_map = {},
             queries = {},
+            consumed = {},
+            subs = {},
+            scopes = {}
         }
 
         -- initialize archetype component column
@@ -77,7 +103,16 @@ function ensure_archetype(
             new_archetype.columns_map[component] = column
         end
 
-        world.archetypes[hash] = new_archetype
+        archetypes[hash] = new_archetype
+
+        for _, other_archetype: archetype in pairs(archetypes) do
+            local other_track = other_archetype.track
+
+            if other_archetype ~= new_archetype and subset(other_track, track) then
+                insert(new_archetype.subs, other_archetype)
+            end
+        end
+
         return new_archetype
     end
 
@@ -92,14 +127,14 @@ local function ensure_record(
     local record = records[entity]
 
     if record == nil then
-        local archetype = world.root_archetype
+        local root_archetype = ensure_archetype(world, {})
 
         -- insert entity on the archetype
-        local row = #archetype.entities + 1
-        insert(archetype.entities, entity)
+        local row = #root_archetype.entities + 1
+        insert(root_archetype.entities, entity)
 
         local new_record = {
-            archetype = archetype,
+            archetype = root_archetype,
             row = row,
         }
 
@@ -127,6 +162,93 @@ local function archetype_transition(
 
     -- create a new archetype with the new tracked components
     return ensure_archetype(world, new_track)
+end
+
+local function archetype_query_transition(
+    world: world,
+    entity: entity,
+    archetype: archetype,
+    single_trait: trait?
+)
+    local scopes = archetype.scopes
+    local consumed = archetype.consumed
+
+    if not scopes[entity] then
+        scopes[entity] = {}
+    end
+    local entity_scopes = scopes[entity]
+
+    local function apply_trait(trait: trait)
+        consumed[trait] = consumed[trait] or {}
+
+        if consumed[trait][entity] then
+            return -- already applied, skip
+        end
+
+        local scope = {}
+        insert(entity_scopes, scope)
+
+        trait(entity, scope)
+        consumed[trait][entity] = true
+    end
+
+    if single_trait then
+        apply_trait(single_trait)
+        return
+    end
+
+    for _, trait in ipairs(archetype.queries) do
+        apply_trait(trait)
+    end
+
+    for _, sub_archetype in ipairs(archetype.subs) do
+        archetype_query_transition(world, entity, sub_archetype)
+    end
+end
+
+local function archetype_query_cleanup(
+    world: world,
+    entity: entity,
+    archetype: archetype
+)
+    local scopes = archetype.scopes
+
+    -- remove scopes attached to this archetype
+    for _, scope in ipairs(scopes[entity]) do
+        -- cleanup(scope)
+    end
+    scopes[entity] = nil
+
+    for _, trait in ipairs(archetype.queries) do
+        local applied = archetype.consumed[trait]
+
+        if applied then
+            applied[entity] = nil
+        end
+    end
+
+    -- recursively clean up sub-archetypes
+    for _, sub_archetype in ipairs(archetype.subs) do
+        archetype_query_cleanup(world, entity, sub_archetype)
+    end
+end
+
+local function world_query(
+    world: world,
+    ...: entity
+)
+    local track = { ... }
+    local archetype = ensure_archetype(world, track)
+
+    return function(trait: trait)
+        -- call this trait for all entities
+        for _, id in pairs(archetype.entities) do
+            archetype_query_transition(world, id, archetype, trait)
+        end
+
+        -- cache trait in the archetype
+        insert(archetype.queries, trait)
+    end
 end
 
 local function archetype_swap_remove(
@@ -170,7 +292,6 @@ local function world_insert<D>(
     data: D?
 ): D?
     local record = ensure_record(world, entity)
-    assert(record, 'entity does not exist')
 
     local old_archetype = record.archetype
     local old_row = record.row
@@ -209,6 +330,14 @@ local function world_insert<D>(
 
     -- remove entity from the old archetype
     archetype_swap_remove(world, entity, old_row, old_archetype)
+
+    -- only remove scopes if the new archetype no longer satisfies the old one
+    if not subset(old_archetype.track, new_archetype.track) then
+        archetype_query_cleanup(world, entity, old_archetype)
+    end
+
+    -- enable queries for the new archetype
+    archetype_query_transition(world, entity, new_archetype)
 
     return data
 end
@@ -254,12 +383,13 @@ local function world_ask(
     return field(component, columns_map, row)
 end
 
-export type world = typeof(world.new())
-
 do
     world.insert = world_insert
     world.ask = world_ask
-    world.spawn = world_spawn 
+    world.spawn = world_spawn
+    world.query = world_query
 end
+
+export type world = typeof(world.new())
 
 return world
