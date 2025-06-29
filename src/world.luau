@@ -263,6 +263,24 @@ local function find_archetype_with(
     return ensure_archetype(world, new_track)
 end
 
+local function find_archetype_without(
+    world: world,
+    component: entity,
+    archetype: archetype
+): archetype
+    
+    local track = archetype.track
+    local at = find(track, component)
+
+    local new_track = {}
+    for _, id in ipairs(track) do
+        insert(new_track, id)
+    end
+    remove(new_track, at)
+
+    return ensure_archetype(world, new_track)
+end
+
 local function archetype_query_transition(
     world: world,
     entity: entity,
@@ -333,6 +351,7 @@ local function archetype_query_cleanup(
         if entity_scopes then
             -- cleanup entity's scope attached to this trait
             -- clean(entity_scopes[trait])
+            entity_scopes[trait] = nil
         end
     end
 end
@@ -403,6 +422,42 @@ local function archetype_swap_remove(
     end
 end
 
+local function archetype_entity_move(
+    world: world,
+    new_archetype: archetype,
+    entity: entity,
+    record: record
+)
+    local old_archetype = record.archetype
+    local old_row = record.row
+
+    local new_row = #new_archetype.entities + 1
+    insert(new_archetype.entities, entity)
+
+    -- move entity's data to the new archetype
+    for _, id in ipairs(new_archetype.track) do
+        local column = new_archetype.columns_map[id]
+
+        local old_column = old_archetype.columns_map[id]
+        column[new_row] = old_column and old_column[old_row] or nil
+    end
+
+    record.archetype = new_archetype
+    record.row = new_row
+
+    -- remove entity from the old archetype
+    archetype_swap_remove(world, entity, old_row, old_archetype)
+
+    -- only remove scopes if the new archetype no longer satisfies the old one
+    if find(new_archetype.supers, old_archetype) then
+        print('cleaning:', old_archetype.hash)
+        archetype_query_cleanup(world, entity, old_archetype)
+    end
+
+    -- enable queries for the new archetype
+    archetype_query_transition(world, entity, new_archetype)
+end
+
 local function world_insert<D>(
     world: world,
     entity: entity,
@@ -410,7 +465,6 @@ local function world_insert<D>(
     data: D?
 ): D?
     local record = ensure_record(world, entity)
-
     local old_archetype = record.archetype
     local old_row = record.row
 
@@ -425,39 +479,35 @@ local function world_insert<D>(
         return data
     end
 
-    local new_row = #new_archetype.entities + 1
-    insert(new_archetype.entities, entity)
-
-    -- move entity's data to the new archetype
-    for _, id in ipairs(new_archetype.track) do
-        local column = new_archetype.columns_map[id]
-
-        if id == component then
-            column[new_row] = data
-        else
-            local old_column = old_archetype.columns_map[id]
-            column[new_row] = old_column and old_column[old_row] or nil
-        end
+    if old_archetype then
+        -- move entity to the new archetype
+        archetype_entity_move(world, new_archetype, entity, record)
     end
 
-    -- update entity record
-    world.records[entity] = {
-        archetype = new_archetype,
-        row = new_row
-    }
-
-    -- remove entity from the old archetype
-    archetype_swap_remove(world, entity, old_row, old_archetype)
-
-    -- only remove scopes if the new archetype no longer satisfies the old one
-    if find(new_archetype.supers, old_archetype) then
-        archetype_query_cleanup(world, entity, old_archetype)
-    end
-
-    -- enable queries for the new archetype
-    archetype_query_transition(world, entity, new_archetype)
+    -- set component's data on the new archetype
+    local column = new_archetype.columns_map[component]
+    column[record.row] = data
 
     return data
+end
+
+local function world_remove(
+    world: world,
+    entity: entity,
+    component: entity
+)
+    local record = ensure_record(world, entity)
+    local old_archetype = record.archetype
+
+    if old_archetype == nil then
+        return
+    end
+
+    if old_archetype.columns_map[component] then
+        local new_archetype = find_archetype_without(world, component, old_archetype)
+
+        archetype_entity_move(world, new_archetype, entity, record)
+    end
 end
 
 local function world_spawn(world: world)
@@ -503,6 +553,7 @@ end
 
 do
     world.insert = world_insert
+    world.remove = world_remove
     world.ask = world_ask
     world.spawn = world_spawn
     world.query = world_query
@@ -521,6 +572,7 @@ type world_impl = {
     __index: world_impl,
     new: () -> world,
     insert: <D>(self: world, entity: entity, component: entity, data: D?) -> D?,
+    remove: (self: world, entity: entity, component: entity) -> (),
     ask: (self: world, entity: entity, component: entity) -> any?,
     spawn: (self: world) -> entity,
     query: (self: world, ...entity) -> (trait: trait) -> ()
