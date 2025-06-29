@@ -111,5 +111,31 @@ return function(testing: testing)
 			-- check inverse
 			expect(#ab.subs).is(0)
 		end)
+
+		test('should correctly register subs regardless of component order', function()
+			local w = world.new()
+			local A = w:spawn()
+			local B = w:spawn()
+			local C = w:spawn()
+
+			-- Intentionally out of order
+			w:query(B, C, A)(function() end)
+			w:query(C, A, B)(function() end)
+			w:query(B, C)(function() end)
+
+			local cab = w.archetypes['3_1_2']
+			expect(cab).never_exists()
+
+			local bca = w.archetypes['1_2_3']
+			local bc = w.archetypes['2_3']
+
+			expect(bca).exists()
+			expect(bc).exists()
+			expect(#bca.subs).is(1)
+			expect(bca.subs[1]).is(bc)
+
+			-- reverse check
+			expect(#bc.subs).is(0)
+		end)
 	end)
 end

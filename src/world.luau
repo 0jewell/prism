@@ -100,73 +100,110 @@ local function ensure_state(
     return archetype_state
 end
 
-local function ensure_archetype(
-    world: world,
+local function hash(
     track: { entity }
+): string
+    return table.concat(track, '_')
+end
+
+local function create_archetype(
+    track: { entity },
+    hash: string
 ): archetype
-    -- generate archetype identifier
-    local hash = table.concat(track, '_')
-    local component_index = world.component_index
+    return {
+        hash = hash,
+        track = track,
+        entities = {},
+        columns = {},
+        columns_map = {},
+        subs = {}
+    }
+end
+
+local function register_component_index(
+    world: world,
+    track: { entity },
+    hash: string,
+    archetype: archetype
+): set<archetype>
     local archetypes = world.archetypes
-    local archetype = archetypes[hash]
+    local component_index = world.component_index
+    local possible_subs = {}
 
-    if archetype == nil then
-        local new_archetype = {
-            hash = hash,
-            track = track,
-            entities = {},
-            columns = {},
-            columns_map = {},
-            subs = {}
-        }
+    for _, component in ipairs(track) do
+        local column = {}
+        archetype.columns[component] = column
+        archetype.columns_map[component] = column
 
-        -- create archetype state
-        ensure_state(world, new_archetype)
+        -- check if the current component has been added
+        -- to an archetype before
+        if component_index[component] then
+            local component_archetypes = component_index[component]
 
-        local possible_subs = {}
-        for _, component in ipairs(track) do
-            -- initialize archetype component column
-            local column = {}
-            new_archetype.columns[component] = column
-            new_archetype.columns_map[component] = column
-
-            -- check if the current component has been added
-            -- to an archetype before
-            if component_index[component] then
-                local component_archetypes = component_index[component]
-                
-                -- if so, add it as a possible sub archetype
-                for archetype_hash in pairs(component_archetypes) do
-                    local other_archetype = archetypes[archetype_hash]
-                    insert(possible_subs, other_archetype)
-                end
-            else
-                component_index[component] = {}
+            -- if so, add it as a possible sub archetype or a super archetype
+            for archetype_hash in pairs(component_archetypes) do
+                local other_archetype = archetypes[archetype_hash]
+                possible_subs[other_archetype] = true
             end
-
-            component_index[component][hash] = true
+        else
+            component_index[component] = {}
         end
 
-        for _, other_archetype: archetype in pairs(possible_subs) do
-            local other_track = other_archetype.track
-
-            -- avoid duplicated sub_archetypes
-            -- in case components A and B have the same archetype
-            -- on its index
-            if find(new_archetype.subs, other_archetype) then
-                continue
-            end
-
-            if other_archetype ~= new_archetype and subset(other_track, track) then
-                insert(new_archetype.subs, other_archetype)
-            end
-        end
-
-        archetypes[hash] = new_archetype
-        return new_archetype
+        component_index[component][hash] = true
     end
 
-    return archetype
+    return possible_subs
+end
+
+local function link_sub_archetypes(
+    world: world,
+    archetype: archetype,
+    track: { entity }
+)
+    for _, other_archetype in pairs(world.archetypes) do
+        if other_archetype == archetype then
+            continue
+        end
+
+        local other_track = other_archetype.track
+        if #other_track == 0 then
+            continue
+        end
+
+        if subset(other_track, track) then
+            -- other is a subset of new
+            insert(archetype.subs, other_archetype)
+        elseif subset(track, other_track) then
+            -- new is a subset of other
+            insert(other_archetype.subs, archetype)
+        end
+    end
+end
+
+local function ensure_archetype(
+    world: world, 
+    track: { entity }
+): archetype
+    local hash = hash(track)
+    local archetype = world.archetypes[hash]
+
+    if archetype then
+        return archetype
+    end
+
+    local new_archetype = create_archetype(track, hash)
+
+    -- create runtime state for queries, scopes
+    ensure_state(world, new_archetype)
+
+    -- register components and collect related archetypes
+    register_component_index(world, track, hash, new_archetype)
+
+    -- link this archetype with others based on component subsets
+    link_sub_archetypes(world, new_archetype, track)
+
+    world.archetypes[hash] = new_archetype
+    return new_archetype
 end
 
 local function ensure_record(
@@ -212,7 +249,7 @@ local function find_insert(
     return #track + 1
 end
 
-local function archetype_transition(
+local function find_archetype_with(
     world: world,
     component: entity,
     archetype: archetype
@@ -226,7 +263,7 @@ local function archetype_transition(
     local at = find_insert(track, component)
     local new_track = {}
 
-    for _, id in ipairs(archetype.track) do
+    for _, id in ipairs(track) do
         insert(new_track, id)
     end
     insert(new_track, at, component)
@@ -315,6 +352,8 @@ local function world_query(
     ...: entity
 )
     local track = { ... }
+    table.sort(track)
+
     local archetype = ensure_archetype(world, track)
     local state = ensure_state(world, archetype)
 
@@ -374,7 +413,7 @@ local function world_insert<D>(
     local old_archetype = record.archetype
     local old_row = record.row
 
-    local new_archetype = archetype_transition(world, component, old_archetype)
+    local new_archetype = find_archetype_with(world, component, old_archetype)
 
     -- if the entity is on the correct archetype
     -- just rewrite its value
