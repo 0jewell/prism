@@ -1,3 +1,4 @@
 return {
-    world = require('./world')
+    world = require('./world'),
+    debugger = require('./debug/trace')
 }
