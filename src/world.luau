@@ -1,38 +1,44 @@
 -- types
+
+-- unique id for an entity
 export type entity = number
 type i53 = number
-type i24 = number
 
+-- storage for temporary data passed to traits
 type scope = { unknown }
+
+-- function applied to entities matching a query
 export type trait = (id: entity, scope: scope) -> ()
 
+-- stores data for a single component across all entities in an archetype
 type column = { unknown }
+
+-- index of the entity inside an archetype's column
 type row = i53
 
 type set<T> = { [T]: boolean }
 
 export type archetype = {
-    track: { entity },
-    hash: string,
-    entities: { entity },
-    columns: { column },
-    columns_map: { [row]: column },
-    subs: { archetype }
+    track: { entity }, -- ordered list of component ids in this archetype
+    hash: string, -- string identifier, e.g. "1_2_3"
+    entities: { entity }, -- list of entities currently in this archetype
+    columns: { column }, -- raw component data arrays
+    columns_map: { [row]: column }, -- maps component id to its column
+    subs: { archetype }, -- archetypes that are subsets of this one
 }
 
 export type state = {
-    queries: { trait },
-    consumed: { [trait]: set<entity> },
-    scopes: { [entity]: scope }
+    queries: { trait }, -- traits (callbacks) on this archetype
+    consumed: { [trait]: set<entity> }, -- tracks which traits were already called to which entity
+    scopes: { [entity]: scope }, -- per-entity scope storage used during trait execution
 }
 
 export type record = {
-    archetype: archetype,
-    row: number
+    archetype: archetype, -- current archetype the entity belongs to
+    row: number, -- row index in the archetype's columns
 }
 
-local insert, remove = table.insert, table.remove
-local find = table.find
+local insert, remove, find = table.insert, table.remove, table.find
 
 -- this
 local world = {}
