@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 --------------------------------------------------------------------------------
 
+## [Unreleased]
+
+### Added
+- Added benchmark tests for entity insertion performance
+- Added unit testing for archetype
+- Added unit testing for queries
+
+### Changes
+
+- Changed registry name to "world"
+- Moved `prism.Query` function to the world
+- Changed `registry:add` to `world:insert`
+- Changed `registry:entity` to `world:spawn`
+
+--------------------------------------------------------------------------------
+
 ## Old - [Unreleased]
 
 ### Added

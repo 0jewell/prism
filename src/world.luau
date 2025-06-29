@@ -501,10 +501,10 @@ end
 type world_fields = {
     next_id: number,
     records: { [entity]: record },
-    archetypes: { [string]: archetype },
+    archetypes: { [string]: archetype }, -- map to hash -> archetype
     consumed: { [trait]: set<entity> }, -- tracks which traits were already called to which entity
     scopes: { [entity]: scope }, -- per-entity scope storage used during trait execution
-    component_index: { [entity]: set<string> }
+    component_index: { [entity]: set<string> } -- map to component -> { hash }
 }
 
 type world_impl = {
