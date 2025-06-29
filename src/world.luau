@@ -305,8 +305,8 @@ local function archetype_query_transition(
         local scope = {}
         entity_scopes[trait] = scope
 
-        trait(entity, scope)
         trait_consumed[entity] = true
+        trait(entity, scope)
     end
 end
 
@@ -450,7 +450,7 @@ local function world_insert<D>(
     archetype_swap_remove(world, entity, old_row, old_archetype)
 
     -- only remove scopes if the new archetype no longer satisfies the old one
-    if not find(new_archetype.subs, old_archetype) then
+    if find(new_archetype.supers, old_archetype) then
         archetype_query_cleanup(world, entity, old_archetype)
     end
 
