@@ -15,10 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changes
 
-- Changed registry name to "world"
 - Moved `prism.Query` function to the world
+- Changed registry name to "world"
+- Changed general syntax for creating queries
 - Changed `registry:add` to `world:insert`
 - Changed `registry:entity` to `world:spawn`
+- Changed `registry:remove` to `world:remove`
 
 --------------------------------------------------------------------------------
 

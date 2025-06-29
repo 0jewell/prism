@@ -126,5 +126,29 @@ return function(testing: testing)
             expect(w.scopes[e2]).exists()
             expect(w.scopes[e2][trait]).exists()
         end)
+
+        test('should stop applying trait when components are removed', function()
+            warn('this test')
+            local w = world.new()
+            local a = w:spawn()
+            local b = w:spawn()
+
+            local e = w:spawn()
+            w:insert(e, a, { val = 1 })
+            w:insert(e, b, { val = 2 })
+
+            local call_count = 0
+            local function trait(entity, scope)
+                call_count += 1
+            end
+
+            w:query(a, b)(trait)
+            expect(call_count).is(1)
+
+            w:remove(e, a)
+
+            local scopes = w.scopes[e]
+            expect(scopes[trait]).is(nil)
+        end)
     end)
 end

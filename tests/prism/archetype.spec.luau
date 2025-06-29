@@ -137,5 +137,33 @@ return function(testing: testing)
 			-- reverse check
 			expect(#bc.subs).is(0)
 		end)
+
+		test('should remove a component and move entity to new archetype', function()
+			local w = world.new()
+			local A = w:spawn()
+			local B = w:spawn()
+			local e = w:spawn()
+
+			w:insert(e, A, { val = 1 })
+			w:insert(e, B, { val = 2 })
+
+			local old_record = w.records[e]
+			local old_archetype = old_record.archetype
+			expect(old_archetype).exists()
+			expect(old_archetype.columns_map[A]).exists()
+			expect(old_archetype.columns_map[B]).exists()
+
+			w:remove(e, B)
+
+			local new_record = w.records[e]
+			local new_archetype = new_record.archetype
+			expect(new_archetype).exists()
+			expect(new_archetype ~= old_archetype).is(true)
+
+			expect(new_archetype.columns_map[A]).exists()
+			expect(new_archetype.columns_map[B]).is(nil)
+
+			expect(new_archetype.columns_map[A][new_record.row].val).is(1)
+		end)
 	end)
 end
