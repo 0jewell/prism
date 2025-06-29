@@ -33,12 +33,9 @@ return function(testing: testing)
             expect(calls[e1]).is(1)
             expect(calls[e2]).never_is(1)
 
-            local archetype = w.records[e1].archetype
-            local state = w.states[archetype.hash]
-            local scopes = state.scopes
+            local scopes = w.scopes[e1]
             expect(scopes).exists()
-            expect(scopes[e1]).exists()
-            expect(#scopes[e1]).is(1)
+            expect(scopes[trait]).exists()
         end)
 
         test('should apply query again when component added and archetype changes', function()

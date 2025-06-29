@@ -24,13 +24,8 @@ export type archetype = {
     entities: { entity }, -- list of entities currently in this archetype
     columns: { column }, -- raw component data arrays
     columns_map: { [row]: column }, -- maps component id to its column
-    subs: { archetype }, -- archetypes that are subsets of this one
-}
-
-export type state = {
-    queries: { trait }, -- traits (callbacks) on this archetype
-    consumed: { [trait]: set<entity> }, -- tracks which traits were already called to which entity
-    scopes: { [entity]: scope }, -- per-entity scope storage used during trait execution
+    subs: { archetype }, -- archetypes that are subsets of this one,
+    traits: { trait }, -- traits (callbacks) on this archetype
 }
 
 export type record = {
@@ -51,7 +46,8 @@ function world.new(): world
         records = {},
         archetypes = {},
         component_index = {},
-        states = {}
+        consumed = {},
+        scopes = {}
     }
     
     setmetatable(self, world)
@@ -83,29 +79,6 @@ local function subset<A, B>(
     return i > #sub
 end
 
-local function ensure_state(
-    world: world,
-    archetype: archetype
-): state
-    local states = world.states
-    local hash = archetype.hash
-
-    local archetype_state = states[hash]
-
-    if archetype_state == nil then
-        local new_state = {
-            queries = {},
-            consumed = {},
-            scopes = {}
-        }
-
-        states[hash] = new_state
-        return new_state
-    end
-
-    return archetype_state
-end
-
 local function hash(
     track: { entity }
 ): string
@@ -122,7 +95,8 @@ local function create_archetype(
         entities = {},
         columns = {},
         columns_map = {},
-        subs = {}
+        subs = {},
+        traits = {}
     }
 end
 
@@ -179,12 +153,24 @@ local function link_sub_archetypes(
         if subset(other_track, track) then
             -- other is a subset of new
             insert(archetype.subs, other_archetype)
+
+            -- copy traits from other to new archetype
+            local traits = archetype.traits
+            local other_traits = other_archetype.traits
+
+            for _, trait in ipairs(other_traits) do
+                if not find(traits, trait) then
+                    insert(traits, trait)
+                end
+            end
+
         elseif subset(track, other_track) then
             -- new is a subset of other
             insert(other_archetype.subs, archetype)
         end
     end
 end
+
 
 local function ensure_archetype(
     world: world, 
@@ -198,9 +184,6 @@ local function ensure_archetype(
     end
 
     local new_archetype = create_archetype(track, hash)
-
-    -- create runtime state for queries, scopes
-    ensure_state(world, new_archetype)
 
     -- register components and collect related archetypes
     register_component_index(world, track, hash, new_archetype)
@@ -284,41 +267,44 @@ local function archetype_query_transition(
     archetype: archetype,
     single_trait: trait?
 )
-    local state = ensure_state(world, archetype)
+    local scopes = world.scopes
+    local consumed = world.consumed
+    local traits = archetype.traits
 
-    local scopes = state.scopes
-    local consumed = state.consumed
-
-    if not scopes[entity] then
-        scopes[entity] = {}
+    if single_trait then
+        traits = { single_trait }
     end
+
+    if #traits == 0 then
+        return
+    end
+
     local entity_scopes = scopes[entity]
 
-    local function apply_trait(trait: trait)
-        consumed[trait] = consumed[trait] or {}
+    if entity_scopes == nil then
+        entity_scopes = {}
 
-        if consumed[trait][entity] then
+        scopes[entity] = entity_scopes
+    end
+
+    for _, trait in ipairs(traits) do
+        local trait_consumed = consumed[trait]
+
+        if trait_consumed == nil then
+            trait_consumed = {}
+
+            consumed[trait] = trait_consumed
+        end
+
+        if trait_consumed[entity] then
             return -- already applied, skip
         end
 
         local scope = {}
-        insert(entity_scopes, scope)
+        entity_scopes[trait] = scope
 
         trait(entity, scope)
-        consumed[trait][entity] = true
-    end
-
-    if single_trait then
-        apply_trait(single_trait)
-        return
-    end
-
-    for _, trait in ipairs(state.queries) do
-        apply_trait(trait)
-    end
-
-    for _, sub_archetype in ipairs(archetype.subs) do
-        archetype_query_transition(world, entity, sub_archetype)
+        trait_consumed[entity] = true
     end
 end
 
@@ -327,29 +313,25 @@ local function archetype_query_cleanup(
     entity: entity,
     archetype: archetype
 )
-    local state = ensure_state(world, archetype)
-    local scopes = state.scopes
+    local scopes = world.scopes
+    local consumed = world.consumed
 
-    if scopes[entity] then
-        -- remove scopes attached to this archetype
-        for _, scope in ipairs(scopes[entity]) do
-            -- cleanup(scope)
+    for _, trait in ipairs(archetype.traits) do
+        local trait_consumed = consumed[trait]
+
+        if not trait_consumed then
+            continue
         end
 
-        scopes[entity] = nil
-    end
+        -- remove entity from this trait
+        trait_consumed[entity] = nil
 
-    for _, trait in ipairs(state.queries) do
-        local applied = state.consumed[trait]
+        local entity_scopes = scopes[entity]
 
-        if applied then
-            applied[entity] = nil
+        if entity_scopes then
+            -- cleanup entity's scope attached to this trait
+            -- clean(entity_scopes[trait])
         end
-    end
-
-    -- recursively clean up sub-archetypes
-    for _, sub_archetype in ipairs(archetype.subs) do
-        archetype_query_cleanup(world, entity, sub_archetype)
     end
 end
 
@@ -361,7 +343,6 @@ local function world_query(
     table.sort(track)
 
     local archetype = ensure_archetype(world, track)
-    local state = ensure_state(world, archetype)
 
     return function(trait: trait)
         -- call this trait for all entities
@@ -369,8 +350,12 @@ local function world_query(
             archetype_query_transition(world, id, archetype, trait)
         end
 
+        if find(archetype.traits, trait) then
+            return
+        end
+
         -- cache trait in the archetype state
-        insert(state.queries, trait)
+        insert(archetype.traits, trait)
     end
 end
 
@@ -517,7 +502,8 @@ type world_fields = {
     next_id: number,
     records: { [entity]: record },
     archetypes: { [string]: archetype },
-    states: { [string]: state },
+    consumed: { [trait]: set<entity> }, -- tracks which traits were already called to which entity
+    scopes: { [entity]: scope }, -- per-entity scope storage used during trait execution
     component_index: { [entity]: set<string> }
 }
 
