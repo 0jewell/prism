@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Changed `registry:add` to `world:insert`
 - Changed `registry:entity` to `world:spawn`
 - Changed `registry:remove` to `world:remove`
+- Changed `registry:contains` to `world:has`
 
 --------------------------------------------------------------------------------
 

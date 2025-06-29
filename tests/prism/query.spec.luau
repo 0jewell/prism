@@ -128,7 +128,6 @@ return function(testing: testing)
         end)
 
         test('should stop applying trait when components are removed', function()
-            warn('this test')
             local w = world.new()
             local a = w:spawn()
             local b = w:spawn()

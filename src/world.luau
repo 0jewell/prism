@@ -24,8 +24,8 @@ export type archetype = {
     entities: { entity }, -- list of entities currently in this archetype
     columns: { column }, -- raw component data arrays
     columns_map: { [row]: column }, -- maps component id to its column
-    subs: { archetype }, -- archetypes that are subsets of this one,
-    supers: { archetype }, -- archetypes that are supersets of this one
+    subs: set<archetype>, -- archetypes that are subsets of this one,
+    supers: set<archetype>, -- archetypes that are supersets of this one
     traits: set<trait> -- traits (callbacks) on this archetype
 }
 
@@ -34,7 +34,7 @@ export type record = {
     row: number, -- row index in the archetype's columns
 }
 
-local insert, remove, find = table.insert, table.remove, table.find
+local insert, remove = table.insert, table.remove
 
 -- this
 local world = {}
@@ -154,8 +154,8 @@ local function link_sub_archetypes(
 
         if subset(other_track, track) then
             -- other is a subset of new
-            insert(archetype.subs, other_archetype)
-            insert(other_archetype.supers, archetype)
+            archetype.subs[other_archetype] = true
+            other_archetype.supers[archetype] = true
 
             -- copy traits from other to new archetype
             local traits = archetype.traits
@@ -167,8 +167,8 @@ local function link_sub_archetypes(
 
         elseif subset(track, other_track) then
             -- new is a subset of other
-            insert(other_archetype.subs, archetype)
-            insert(archetype.supers, other_archetype)
+            other_archetype.subs[archetype] = true
+            archetype.supers[other_archetype] = true
         end
     end
 end
@@ -270,7 +270,7 @@ local function find_archetype_without(
 ): archetype
     
     local track = archetype.track
-    local at = find(track, component)
+    local at = table.find(track, component)
 
     local new_track = {}
     for _, id in ipairs(track) do
@@ -365,7 +365,7 @@ local function archetype_propagate_trait(
         archetype_query_transition(world, id, archetype, trait)
     end
 
-    for _, super_archetype in pairs(archetype.supers) do
+    for super_archetype in pairs(archetype.supers) do
         archetype_propagate_trait(world, super_archetype, trait)
     end
 end
@@ -427,7 +427,7 @@ local function archetype_entity_move(
     new_archetype: archetype,
     entity: entity,
     record: record
-)
+): ()
     local old_archetype = record.archetype
     local old_row = record.row
 
@@ -435,11 +435,15 @@ local function archetype_entity_move(
     insert(new_archetype.entities, entity)
 
     -- move entity's data to the new archetype
-    for _, id in ipairs(new_archetype.track) do
-        local column = new_archetype.columns_map[id]
+    for i = 1, #new_archetype.track do
+        local id = new_archetype.track[i]
 
+        local column = new_archetype.columns_map[id]
         local old_column = old_archetype.columns_map[id]
-        column[new_row] = old_column and old_column[old_row] or nil
+
+        if old_column then
+            column[new_row] = old_column[old_row]
+        end
     end
 
     record.archetype = new_archetype
@@ -449,8 +453,7 @@ local function archetype_entity_move(
     archetype_swap_remove(world, entity, old_row, old_archetype)
 
     -- only remove scopes if the new archetype no longer satisfies the old one
-    if find(new_archetype.supers, old_archetype) then
-        print('cleaning:', old_archetype.hash)
+    if new_archetype.supers[old_archetype] then
         archetype_query_cleanup(world, entity, old_archetype)
     end
 
@@ -510,6 +513,23 @@ local function world_remove(
     end
 end
 
+local function world_has(
+    world: world,
+    entity: entity,
+    component: entity
+)
+    local record = ensure_record(world, entity)
+    local archetype = record.archetype
+
+    local archetype_set = world.component_index[component]
+
+    if archetype_set == nil then
+        return false
+    end
+
+    return archetype_set[archetype.hash] ~= nil
+end
+
 local function world_spawn(world: world)
     local next_id = world.next_id
 
@@ -557,6 +577,7 @@ do
     world.ask = world_ask
     world.spawn = world_spawn
     world.query = world_query
+    world.has = world_has
 end
 
 type world_fields = {
@@ -575,7 +596,8 @@ type world_impl = {
     remove: (self: world, entity: entity, component: entity) -> (),
     ask: (self: world, entity: entity, component: entity) -> any?,
     spawn: (self: world) -> entity,
-    query: (self: world, ...entity) -> (trait: trait) -> ()
+    query: (self: world, ...entity) -> (trait: trait) -> (),
+    has: (self: world, entity: entity, component: entity) -> boolean
 }
 
 export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))

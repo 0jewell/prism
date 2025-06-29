@@ -59,8 +59,8 @@ local function debug_archetype(archetype: mock_archetype, indent: string?)
     print_labeled('Traits:', tostring(trait_count), indent_str)
     print_labeled('Subs:', tostring(#archetype.subs), indent_str)
     
-    for i, sub in ipairs(archetype.subs) do
-        print(indent_str .. '│    ↪ ' .. i .. ': ' .. value(sub.hash))
+    for sub in pairs(archetype.subs) do
+        print(indent_str .. '│    ↪ ' .. value(sub.hash))
     end
     print(indent_str .. '╰──────────────')
 end
@@ -83,7 +83,8 @@ local function debug_world(world: mock_world)
     for entity, record in pairs(world.records) do
         print('│ Entity ' .. value(entity) ..
             '  →  🧬 ' .. value(record.archetype.hash) ..
-            '  @ Row ' .. value(record.row))
+            '  @ Row ' .. value(record.row)
+        )
     end
     print()
 

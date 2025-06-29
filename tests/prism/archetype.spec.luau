@@ -105,11 +105,10 @@ return function(testing: testing)
 			local ab = w.archetypes['1_2']
 
 			expect(abc).exists()
-			expect(#abc.subs).is(1)
-			expect(abc.subs[1]).is(ab)
+			expect(abc.subs[ab]).exists()
 
 			-- check inverse
-			expect(#ab.subs).is(0)
+			expect(ab.subs[abc]).never_exists()
 		end)
 
 		test('should correctly register subs regardless of component order', function()
@@ -131,11 +130,10 @@ return function(testing: testing)
 
 			expect(bca).exists()
 			expect(bc).exists()
-			expect(#bca.subs).is(1)
-			expect(bca.subs[1]).is(bc)
+			expect(bca.subs[bc]).exists()
 
 			-- reverse check
-			expect(#bc.subs).is(0)
+			expect(bc.subs[bca]).never_exists()
 		end)
 
 		test('should remove a component and move entity to new archetype', function()
