@@ -90,5 +90,41 @@ return function(testing: testing)
             w:insert(e, compC, { val = 3 })
             expect(call_count).is(1)
         end)
+
+        test('should run query on entities in sub-archetypes', function()
+            local w = world.new()
+            local a = w:spawn()
+            local b = w:spawn()
+            local c = w:spawn()
+
+            local e1 = w:spawn()
+            local e2 = w:spawn()
+            local e3 = w:spawn()
+
+            w:insert(e1, a, { val = 10 })
+            w:insert(e1, b, { val = 20 })
+            w:insert(e1, c, { val = 30 })
+
+            w:insert(e2, a, { val = 40 })
+            w:insert(e2, b, { val = 50 })
+
+            w:insert(e3, a, { val = 60 })
+
+            local calls = {}
+            local function trait(entity, scope)
+                calls[entity] = (calls[entity] or 0) + 1
+            end
+
+            w:query(a, b)(trait)
+
+            expect(calls[e1]).is(1)
+            expect(calls[e2]).is(1)
+            expect(calls[e3]).never_is(1)
+
+            expect(w.scopes[e1]).exists()
+            expect(w.scopes[e1][trait]).exists()
+            expect(w.scopes[e2]).exists()
+            expect(w.scopes[e2][trait]).exists()
+        end)
     end)
 end

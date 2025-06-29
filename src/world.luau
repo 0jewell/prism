@@ -25,7 +25,8 @@ export type archetype = {
     columns: { column }, -- raw component data arrays
     columns_map: { [row]: column }, -- maps component id to its column
     subs: { archetype }, -- archetypes that are subsets of this one,
-    traits: { trait }, -- traits (callbacks) on this archetype
+    supers: { archetype }, -- archetypes that are supersets of this one
+    traits: set<trait> -- traits (callbacks) on this archetype
 }
 
 export type record = {
@@ -96,6 +97,7 @@ local function create_archetype(
         columns = {},
         columns_map = {},
         subs = {},
+        supers = {},
         traits = {}
     }
 end
@@ -153,20 +155,20 @@ local function link_sub_archetypes(
         if subset(other_track, track) then
             -- other is a subset of new
             insert(archetype.subs, other_archetype)
+            insert(other_archetype.supers, archetype)
 
             -- copy traits from other to new archetype
             local traits = archetype.traits
             local other_traits = other_archetype.traits
 
-            for _, trait in ipairs(other_traits) do
-                if not find(traits, trait) then
-                    insert(traits, trait)
-                end
+            for trait in other_traits do
+                traits[trait] = true
             end
 
         elseif subset(track, other_track) then
             -- new is a subset of other
             insert(other_archetype.subs, archetype)
+            insert(archetype.supers, other_archetype)
         end
     end
 end
@@ -272,10 +274,10 @@ local function archetype_query_transition(
     local traits = archetype.traits
 
     if single_trait then
-        traits = { single_trait }
+        traits = { [single_trait] = true }
     end
 
-    if #traits == 0 then
+    if next(traits) == nil then
         return
     end
 
@@ -287,7 +289,7 @@ local function archetype_query_transition(
         scopes[entity] = entity_scopes
     end
 
-    for _, trait in ipairs(traits) do
+    for trait in traits do
         local trait_consumed = consumed[trait]
 
         if trait_consumed == nil then
@@ -297,7 +299,7 @@ local function archetype_query_transition(
         end
 
         if trait_consumed[entity] then
-            return -- already applied, skip
+            continue -- already applied, skip
         end
 
         local scope = {}
@@ -316,7 +318,7 @@ local function archetype_query_cleanup(
     local scopes = world.scopes
     local consumed = world.consumed
 
-    for _, trait in ipairs(archetype.traits) do
+    for trait in archetype.traits do
         local trait_consumed = consumed[trait]
 
         if not trait_consumed then
@@ -335,6 +337,20 @@ local function archetype_query_cleanup(
     end
 end
 
+local function archetype_propagate_trait(
+    world: world,
+    archetype: archetype,
+    trait: trait
+)
+    for _, id in pairs(archetype.entities) do
+        archetype_query_transition(world, id, archetype, trait)
+    end
+
+    for _, super_archetype in pairs(archetype.supers) do
+        archetype_propagate_trait(world, super_archetype, trait)
+    end
+end
+
 local function world_query(
     world: world,
     ...: entity
@@ -346,16 +362,10 @@ local function world_query(
 
     return function(trait: trait)
         -- call this trait for all entities
-        for _, id in pairs(archetype.entities) do
-            archetype_query_transition(world, id, archetype, trait)
-        end
-
-        if find(archetype.traits, trait) then
-            return
-        end
+        archetype_propagate_trait(world, archetype, trait)
 
         -- cache trait in the archetype state
-        insert(archetype.traits, trait)
+        archetype.traits[trait] = true
     end
 end
 
