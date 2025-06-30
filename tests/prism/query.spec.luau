@@ -18,10 +18,10 @@ return function(testing: testing)
             local e1 = w:spawn()
             local e2 = w:spawn()
 
-            w:insert(e1, a, { val = 10 })
-            w:insert(e1, b, { val = 20 })
+            w:assign(e1, a, { val = 10 })
+            w:assign(e1, b, { val = 20 })
 
-            w:insert(e2, a, { val = 30 })
+            w:assign(e2, a, { val = 30 })
 
             local calls = {}
             local function trait(entity, scope)
@@ -46,7 +46,7 @@ return function(testing: testing)
 
             local e = w:spawn()
 
-            w:insert(e, a, { val = 1 })
+            w:assign(e, a, { val = 1 })
 
             local call_count = 0
             local function trait(entity, scope)
@@ -57,11 +57,11 @@ return function(testing: testing)
 
             expect(call_count).is(0)
 
-            w:insert(e, b, { val = 2 })
+            w:assign(e, b, { val = 2 })
 
             expect(call_count).is(1)
 
-            w:insert(e, c, { val = 3 })
+            w:assign(e, c, { val = 3 })
 
             expect(call_count).is(1)
         end)
@@ -73,8 +73,8 @@ return function(testing: testing)
 
             local e = w:spawn()
 
-            w:insert(e, compA, { val = 1 })
-            w:insert(e, compB, { val = 2 })
+            w:assign(e, compA, { val = 1 })
+            w:assign(e, compB, { val = 2 })
 
             local call_count = 0
             local function trait(entity, scope)
@@ -87,7 +87,7 @@ return function(testing: testing)
             expect(call_count).is(1)
 
             local compC = w:spawn()
-            w:insert(e, compC, { val = 3 })
+            w:assign(e, compC, { val = 3 })
             expect(call_count).is(1)
         end)
 
@@ -101,14 +101,14 @@ return function(testing: testing)
             local e2 = w:spawn()
             local e3 = w:spawn()
 
-            w:insert(e1, a, 10)
-            w:insert(e1, b, 20)
-            w:insert(e1, c, 30)
+            w:assign(e1, a, 10)
+            w:assign(e1, b, 20)
+            w:assign(e1, c, 30)
 
-            w:insert(e2, a, 40)
-            w:insert(e2, b, 50)
+            w:assign(e2, a, 40)
+            w:assign(e2, b, 50)
 
-            w:insert(e3, a, 60)
+            w:assign(e3, a, 60)
 
             local calls = {}
             local function trait(entity, scope)
@@ -133,8 +133,8 @@ return function(testing: testing)
             local b = w:spawn()
 
             local e = w:spawn()
-            w:insert(e, a, { val = 1 })
-            w:insert(e, b, { val = 2 })
+            w:assign(e, a, { val = 1 })
+            w:assign(e, b, { val = 2 })
 
             local call_count = 0
             local function trait(entity, scope)

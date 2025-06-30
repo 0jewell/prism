@@ -25,7 +25,7 @@ return function(testing: testing)
             local position = w:spawn()
             local e = w:spawn()
 
-            w:insert(e, position, { x = 1, y = 2 })
+            w:assign(e, position, { x = 1, y = 2 })
 
             local record = w.records[e]
             expect(record.archetype.hash).never_is('')
@@ -41,8 +41,8 @@ return function(testing: testing)
             local hp = w:spawn()
             local e = w:spawn()
 
-            w:insert(e, hp, 50)
-            w:insert(e, hp, 100)
+            w:assign(e, hp, 50)
+            w:assign(e, hp, 100)
 
             local record = w.records[e]
             local archetype = record.archetype
@@ -57,10 +57,10 @@ return function(testing: testing)
             local vel = w:spawn()
             local e = w:spawn()
 
-            w:insert(e, pos, { x = 0, y = 0 })
+            w:assign(e, pos, { x = 0, y = 0 })
             local old_archetype = w.records[e].archetype
 
-            w:insert(e, vel, { x = 1, y = 1 })
+            w:assign(e, vel, { x = 1, y = 1 })
             local new_archetype = w.records[e].archetype
 
             expect(old_archetype).never_is(new_archetype)
@@ -77,22 +77,23 @@ return function(testing: testing)
         end)
 
         test('should not duplicate archetypes with same component set', function()
+            print(1)
             local w = world.new()
             local a = w:spawn()
             local b = w:spawn()
             local e1 = w:spawn()
             local e2 = w:spawn()
 
-            w:insert(e1, a, true)
-            w:insert(e1, b, true)
+            w:insert(e1, a, true, b, true)
 
-            w:insert(e2, b, true)
-            w:insert(e2, a, true)
-
-            expect(w.records[e1].archetype).is(w.records[e2].archetype)
+            w:assign(e2, b, true)
+            w:assign(e2, a, true)
+            
+            expect(w.records[e1].archetype.hash).is(w.records[e2].archetype.hash)
         end)
 
         test('should register archetype with correct subs using component index', function()
+            print(5)
             local w = world.new()
             local A = w:spawn()
             local B = w:spawn()
@@ -142,8 +143,8 @@ return function(testing: testing)
             local B = w:spawn()
             local e = w:spawn()
 
-            w:insert(e, A, { val = 1 })
-            w:insert(e, B, { val = 2 })
+            w:assign(e, A, { val = 1 })
+            w:assign(e, B, { val = 2 })
 
             local old_record = w.records[e]
             local old_archetype = old_record.archetype

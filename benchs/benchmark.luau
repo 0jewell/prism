@@ -41,7 +41,7 @@ local function benchmark()
     for i = 1, entity_count do
         local e = w:spawn()
         for j = 1, components_per_entity do
-            w:insert(e, all_components[j])
+            w:assign(e, all_components[j])
         end
     end
 

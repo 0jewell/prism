@@ -12,13 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added benchmark tests for entity insertion performance
 - Added unit testing for archetype
 - Added unit testing for queries
+- Added `world:insert`
+- Added `world:component` to component metadatas
 
 ### Changes
 
 - Moved `prism.Query` function to the world
 - Changed registry name to "world"
 - Changed general syntax for creating queries
-- Changed `registry:add` to `world:insert`
+- Changed `registry:add` to `world:assign`
 - Changed `registry:entity` to `world:spawn`
 - Changed `registry:remove` to `world:remove`
 - Changed `registry:contains` to `world:has`
