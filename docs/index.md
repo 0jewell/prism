@@ -8,30 +8,29 @@
 
 ## Introduction
 
-This is a rework of **Celesta**, my old ECS library, created 7 months ago. After having some problems with Celesta development, I stopped it and now I decided to open-source the new version of it with a new name -- Prism.
+This is a rework of **Celesta**, my old ECS library, created a couple months ago. After having some problems with Celesta development, I stopped it and now I decided to open-source the new version of it with a new name -- Prism.
 
 ## Usage
 
 ```lua
-local Packages = game.ReplicatedStorage.Packages
-local Prism = require(Packages.Prism)
+local world = require(shared.world)
 
-local health = Prism.Piece {
-    max = 100,
-    current = 100
-}
-local damaged = Prism.Piece(10)
+local health = world:spawn()
+local damaged = world:spawn()
 
-return Prism.Query {
-    query = function()
-        return health, damaged
-    end
-}
-:trait('Update Health', function(data, health, damaged)
-    -- Deal damage
-    health.data.current = math.max(0, health.data.current - damaged.data)
+local entity = world:spawn()
 
-    -- Remove the damaged piece
-    data.registry:remove(data.entity, damaged)
+world:insert(entity,
+    health, 100,
+    damaged, 10
+)
+
+world:query(health, damaged) (function(entity)
+    local health = world:ask(entity, health)
+    local damaged = world:ask(entity, damaged)
+
+    world:assign(entity, health, math.max(0, health - damaged)
+
+    world:remove(entity, damaged)
 end)
 ```
