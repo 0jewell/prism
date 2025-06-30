@@ -17,7 +17,7 @@ type set<T> = { [T]: boolean }
 
 export type archetype = {
     track: { entity }, -- ordered list of component ids in this archetype
-    hash: string, -- string identifier, e.g. "1_2_3"
+    hash: string, -- string identifier, e.g. '1_2_3'
     entities: { entity }, -- list of entities currently in this archetype
     columns: { column }, -- raw component data arrays
     columns_map: { [entity]: column }, -- maps component id to its column
@@ -30,6 +30,19 @@ export type record = {
     archetype: archetype, -- current archetype the entity belongs to
     row: number, -- row index in the archetype's columns
 }
+
+type component_fields<T> = {
+    default: T,
+    id: entity 
+}
+
+type component_impl<T> = {
+    __call: (self: component_impl<T>) -> T
+}
+
+export type component<T> = typeof(
+    setmetatable({} :: component_fields<T>, {} :: component_impl<T>)
+)
 
 local insert, remove = table.insert, table.remove
 
@@ -425,7 +438,7 @@ local function archetype_entity_move(
     new_archetype: archetype,
     entity: entity,
     record: record
-): ()
+)
     local old_archetype = record.archetype
     local old_row = record.row
 
@@ -459,7 +472,7 @@ local function archetype_entity_move(
     archetype_query_transition(world, entity, new_archetype)
 end
 
-local function world_insert<D>(
+local function world_assign<D>(
     world: world,
     entity: entity,
     component: entity,
@@ -569,14 +582,88 @@ local function world_ask(
     return field(component, columns_map, row)
 end
 
+local function component<T>(
+    world: world,
+    default: T
+): () -> component<T>
+    local id = world_spawn(world)
+
+    local metadata = { id = id, default = default }
+    local metatable = {}
+
+    function metatable:__call()
+        if typeof(default) == 'table' then
+            local new_value: any = table.clone(default)
+
+            return new_value
+        end
+
+        return default
+    end
+
+    setmetatable(metadata, metatable)
+
+    return function()
+        return metadata
+    end
+end
+
+local function world_insert(
+    world: world,
+    entity: entity,
+    ...: undecided_component<unknown, any>
+)
+    local args = { ... }
+    local i = 1
+
+    while i <= #args do
+        local entry = args[i]
+        local next_val = args[i + 1]
+
+        -- case 1: component metadata (has .id and .default)
+        if typeof(entry) == 'table' and entry.id and entry.default ~= nil then
+            world_assign(world, entity, entry.id, entry.default)
+            i += 1
+
+        -- case 2: direct component id followed by value
+        elseif typeof(entry) == 'number' and next_val ~= nil then
+            world_assign(world, entity, entry, next_val)
+            i += 2
+
+        -- invalid usage: warn and break to avoid silent failure
+        else
+            error(`world:insert invalid argument at {i}: {entry}. Use world:assign instead`)
+        end
+    end
+end
+
 do
-    world.insert = world_insert
+    world.assign = world_assign
     world.remove = world_remove
     world.ask = world_ask
     world.spawn = world_spawn
     world.query = world_query
     world.has = world_has
+    world.insert = world_insert :: world_insert
+    world.component = component
 end
+
+type undecided_component<T, Prev> =
+    component<T> -- metadata table: { id, default }
+    | entity -- component id
+    | Prev -- fallback value for previous componen
+
+type world_insert = <T, T1, T2, T3, T4, T5>(
+    world: world,
+    entity: entity,
+    a: component<T> | entity,
+    b: undecided_component<T1, T>?,
+    c: undecided_component<T2, T1>?,
+    d: undecided_component<T3, T2>?,
+    e: undecided_component<T4, T3>?,
+    f: undecided_component<T5, T4>?,
+    g: T5?
+) -> ()
 
 type world_fields = {
     next_id: number,
@@ -590,12 +677,14 @@ type world_fields = {
 type world_impl = {
     __index: world_impl,
     new: () -> world,
-    insert: <D>(self: world, entity: entity, component: entity, data: D?) -> D?,
+    assign: <D>(self: world, entity: entity, component: entity, data: D?) -> D?,
     remove: (self: world, entity: entity, component: entity) -> (),
     ask: (self: world, entity: entity, component: entity) -> any?,
     spawn: (self: world) -> entity,
     query: (self: world, ...entity) -> (trait: trait) -> (),
-    has: (self: world, entity: entity, component: entity) -> boolean
+    has: (self: world, entity: entity, component: entity) -> boolean,
+    insert: world_insert,
+    component: <T>(world: world, default: T) -> () -> component<T>
 }
 
 export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
