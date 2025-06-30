@@ -1,4 +1,3 @@
---!nolint LocalShadow
 local colors = require('./colors')
 local label = colors.label
 local value = colors.value
@@ -14,6 +13,8 @@ type mock_world = world_module.world
 local trace_enabled = false
 local trait_stack: { stackframe } = {}
 
+local CELL_WIDTH = 11
+
 export type stackframe = {
     path: string,
     line: number,
@@ -25,7 +26,7 @@ local function get_stackframe(
 ): stackframe?
     local path, line, name = debug.info((level or 2), "sln")
 
-    if not line then
+    if line == nil then
         return
     end
 
@@ -48,20 +49,58 @@ local function print_list(lbl: string, items: { any }, indent: string?)
     print((indent or '') .. '│ ' .. label(lbl) .. ' ' .. value('[' .. table.concat(items, ', ') .. ']'))
 end
 
-local function debug_archetype(archetype: mock_archetype, indent: string?)
+local function pad(str: string): string
+    return string.format("%-" .. CELL_WIDTH .. "s", str)
+end
+
+local function value_preview(v: any): string
+    if typeof(v) == "table" then
+        return "{ ... }"
+    elseif typeof(v) == "string" then
+        return '"' .. v .. '"'
+    else
+        return tostring(v)
+    end
+end
+
+local function debug_archetype(
+    archetype: mock_archetype,
+    indent: string?
+)
     local indent_str = indent or '  '
-    print(indent_str .. '╭─ 🎴 Archetype `' .. value(archetype.hash) .. '`')
-    print_list('Track:', archetype.track, indent_str)
+    print(indent_str .. '╭─ 🎴 Archetype `' .. tostring(archetype.hash) .. '`')
+    print_list('Track (components):', archetype.track, indent_str)
     print_list('Entities:', archetype.entities, indent_str)
-    
+
     local trait_count = 0
-    for _ in archetype.traits do trait_count += 1 end
+    for _ in pairs(archetype.traits) do trait_count += 1 end
     print_labeled('Traits:', tostring(trait_count), indent_str)
     print_labeled('Subs:', tostring(#archetype.subs), indent_str)
-    
     for sub in pairs(archetype.subs) do
-        print(indent_str .. '│    ↪ ' .. value(sub.hash))
+        print(indent_str .. '│    ↪ ' .. tostring(sub.hash))
     end
+
+    print(indent_str .. '│')
+    print(indent_str .. '│ Columns Data (row x component):')
+
+    local header = indent_str .. '│    [row] '
+    for _, component in ipairs(archetype.track) do
+        header ..= '| ' .. pad(tostring(component))
+    end
+    print(header)
+
+    for row = 1, #archetype.entities do
+        local entity = archetype.entities[row]
+        local line = indent_str .. '│    [' .. row .. ':' .. tostring(entity) .. '] '
+        for _, component in ipairs(archetype.track) do
+            local column = archetype.columns_map[component]
+            local value = column and column[row] or nil
+            local preview = value and value_preview(value) or 'nil'
+            line ..= '| ' .. pad(preview)
+        end
+        print(line)
+    end
+
     print(indent_str .. '╰──────────────')
 end
 

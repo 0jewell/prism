@@ -101,14 +101,14 @@ return function(testing: testing)
             local e2 = w:spawn()
             local e3 = w:spawn()
 
-            w:insert(e1, a, { val = 10 })
-            w:insert(e1, b, { val = 20 })
-            w:insert(e1, c, { val = 30 })
+            w:insert(e1, a, 10)
+            w:insert(e1, b, 20)
+            w:insert(e1, c, 30)
 
-            w:insert(e2, a, { val = 40 })
-            w:insert(e2, b, { val = 50 })
+            w:insert(e2, a, 40)
+            w:insert(e2, b, 50)
 
-            w:insert(e3, a, { val = 60 })
+            w:insert(e3, a, 60)
 
             local calls = {}
             local function trait(entity, scope)
