@@ -13,9 +13,6 @@ export type trait = (id: entity, scope: scope) -> ()
 -- stores data for a single component across all entities in an archetype
 type column = { unknown }
 
--- index of the entity inside an archetype's column
-type row = i53
-
 type set<T> = { [T]: boolean }
 
 export type archetype = {
@@ -23,7 +20,7 @@ export type archetype = {
     hash: string, -- string identifier, e.g. "1_2_3"
     entities: { entity }, -- list of entities currently in this archetype
     columns: { column }, -- raw component data arrays
-    columns_map: { [row]: column }, -- maps component id to its column
+    columns_map: { [entity]: column }, -- maps component id to its column
     subs: set<archetype>, -- archetypes that are subsets of this one,
     supers: set<archetype>, -- archetypes that are supersets of this one
     traits: set<trait> -- traits (callbacks) on this archetype
@@ -90,11 +87,13 @@ local function create_archetype(
     track: { entity },
     hash: string
 ): archetype
+    local columns = table.create(#track)
+
     return {
         hash = hash,
         track = track,
         entities = {},
-        columns = {},
+        columns = columns,
         columns_map = {},
         subs = {},
         supers = {},
@@ -112,9 +111,9 @@ local function register_component_index(
     local component_index = world.component_index
     local possible_subs = {}
 
-    for _, component in ipairs(track) do
+    for i, component in ipairs(track) do
         local column = {}
-        archetype.columns[component] = column
+        archetype.columns[i] = column
         archetype.columns_map[component] = column
 
         -- check if the current component has been added
@@ -172,7 +171,6 @@ local function link_sub_archetypes(
         end
     end
 end
-
 
 local function ensure_archetype(
     world: world, 
@@ -391,7 +389,7 @@ end
 local function archetype_swap_remove(
     world: world,
     entity: entity,
-    old_row: row,
+    old_row: number,
     old_archetype: archetype
 )
     local entities = old_archetype.entities
@@ -541,11 +539,11 @@ end
 
 local function field(
     component: entity,
-    columns_map: { [row]: column },
-    row: row
+    columns_map: { [number]: column },
+    row: number
 ): any?
     local column = columns_map[component]
-    
+
     if column == nil then
         return nil
     end
