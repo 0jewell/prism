@@ -15,6 +15,8 @@ type column = { unknown }
 
 type set<T> = { [T]: boolean }
 
+type archetype_edge = { [entity]: archetype }
+
 export type archetype = {
     track: { entity }, -- ordered list of component ids in this archetype
     hash: string, -- string identifier, e.g. '1_2_3'
@@ -23,7 +25,8 @@ export type archetype = {
     columns_map: { [entity]: column }, -- maps component id to its column
     subs: set<archetype>, -- archetypes that are subsets of this one,
     supers: set<archetype>, -- archetypes that are supersets of this one
-    traits: set<trait> -- traits (callbacks) on this archetype
+    traits: set<trait>, -- traits (callbacks) on this archetype,
+    edge: archetype_edge
 }
 
 export type record = {
@@ -101,6 +104,7 @@ local function create_archetype(
     hash: string
 ): archetype
     local columns = table.create(#track)
+    local edge = { to = {}, from = {} }
 
     return {
         hash = hash,
@@ -110,7 +114,8 @@ local function create_archetype(
         columns_map = {},
         subs = {},
         supers = {},
-        traits = {}
+        traits = {},
+        edge = edge
     }
 end
 
@@ -251,15 +256,11 @@ local function find_insert(
     return #track + 1
 end
 
-local function find_archetype_with(
+local function archetype_find_with_component(
     world: world,
     component: entity,
     archetype: archetype
 ): archetype
-    if archetype.columns_map[component] then
-        return archetype
-    end
-
     local track = archetype.track
 
     local at = find_insert(track, component)
@@ -274,7 +275,7 @@ local function find_archetype_with(
     return ensure_archetype(world, new_track)
 end
 
-local function find_archetype_without(
+local function archetype_find_without_component(
     world: world,
     component: entity,
     archetype: archetype
@@ -290,6 +291,52 @@ local function find_archetype_without(
     remove(new_track, at)
 
     return ensure_archetype(world, new_track)
+end
+
+local function archetype_transition_add(
+    world: world,
+    component: entity,
+    archetype: archetype
+): archetype
+    if archetype.columns_map[component] then
+        return archetype
+    end
+
+    local edge = archetype.edge
+    local cached_new_archetype = edge[component]
+
+    if cached_new_archetype == nil then
+        local new_archetype = archetype_find_with_component(world, component, archetype)
+
+        -- cache transition
+        edge[component] = new_archetype
+        new_archetype.edge[component] = archetype
+
+        return new_archetype
+    end
+
+    return cached_new_archetype
+end
+
+local function archetype_transition_remove(
+    world: world,
+    component: entity,
+    archetype: archetype
+): archetype
+    local edge = archetype.edge
+    local cached_new_archetype = edge[component]
+
+    if cached_new_archetype == nil then
+        local new_archetype = archetype_find_without_component(world, component, archetype)
+
+        -- cache transition
+        edge[component] = new_archetype
+        new_archetype.edge[component] = archetype
+
+        return new_archetype
+    end
+
+    return cached_new_archetype
 end
 
 local function archetype_query_transition(
@@ -482,7 +529,7 @@ local function world_assign<D>(
     local old_archetype = record.archetype
     local old_row = record.row
 
-    local new_archetype = find_archetype_with(world, component, old_archetype)
+    local new_archetype = archetype_transition_add(world, component, old_archetype)
 
     -- if the entity is on the correct archetype
     -- just rewrite its value
@@ -518,7 +565,7 @@ local function world_remove(
     end
 
     if old_archetype.columns_map[component] then
-        local new_archetype = find_archetype_without(world, component, old_archetype)
+        local new_archetype = archetype_transition_remove(world, component, old_archetype)
 
         archetype_entity_move(world, new_archetype, entity, record)
     end
