@@ -1,3 +1,5 @@
+--!optimize 2
+--!native
 -- types
 
 -- unique id for an entity
