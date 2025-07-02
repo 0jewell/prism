@@ -106,7 +106,6 @@ local function create_archetype(
     hash: string
 ): archetype
     local columns = table.create(#track)
-    local edge = { to = {}, from = {} }
 
     return {
         hash = hash,
@@ -117,7 +116,7 @@ local function create_archetype(
         subs = {},
         supers = {},
         traits = {},
-        edge = edge
+        edge = {}
     }
 end
 
@@ -463,7 +462,7 @@ local function archetype_swap_remove(
     if entity ~= last_entity then
         entities[old_row] = last_entity
 
-        -- update the record of the moved_entity
+        -- update the record of the moved entity
         local moved_record = world.records[last_entity]
         moved_record.row = old_row
 
@@ -473,9 +472,10 @@ local function archetype_swap_remove(
         end
     end
 
-    -- remove last entity and cleanup its columns
+    -- remove last entity from archetype
     remove(entities, last_index)
 
+    -- cleanup its columns
     for _, id in ipairs(old_archetype.track) do
         local column = old_archetype.columns_map[id]
         column[last_index] = nil
@@ -527,7 +527,11 @@ local function world_assign<D>(
     component: entity,
     data: D?
 ): D?
-    local record = ensure_record(world, entity)
+    local record = world.records[entity]
+    if record == nil then
+        error(`entity {entity} does not exist`)
+    end
+
     local old_archetype = record.archetype
     local old_row = record.row
 
@@ -559,7 +563,11 @@ local function world_remove(
     entity: entity,
     component: entity
 )
-    local record = ensure_record(world, entity)
+    local record = world.records[entity]
+    if record == nil then
+        error(`entity {entity} does not exist`)
+    end
+
     local old_archetype = record.archetype
 
     if old_archetype == nil then
@@ -578,9 +586,13 @@ local function world_has(
     entity: entity,
     component: entity
 )
-    local record = ensure_record(world, entity)
-    local archetype = record.archetype
+    local record = world.records[entity]
 
+    if record == nil then
+        return false
+    end
+
+    local archetype = record.archetype
     local archetype_set = world.component_index[component]
 
     if archetype_set == nil then
@@ -597,6 +609,33 @@ local function world_spawn(world: world)
 
     world.next_id += 1
     return next_id
+end
+
+local function world_despawn(
+    world: world,
+    entity: entity
+)
+    local record = world.records[entity]
+    if record == nil then
+        error(`entity {entity} does not exist`)
+    end
+
+    local archetype = record.archetype
+    local track = archetype.track
+
+    for i = 1, #track do
+        local component = track[i]
+        world_remove(world, entity, component)
+    end
+
+    local new_archetype = record.archetype
+    local new_row = record.row
+
+    -- remove entity from root archetype
+    archetype_swap_remove(world, entity, new_row, new_archetype)
+
+    -- remove it from world records
+    world.records[entity] = nil
 end
 
 local function field(
@@ -618,7 +657,9 @@ local function world_ask(
     entity: entity,
     component: entity
 ): any?
-    local record = ensure_record(world, entity)
+    local record = world.records[entity]
+    assert(record, `entity {entity} does not exist`)
+
     local archetype = record.archetype
 
     if archetype == nil then
@@ -691,6 +732,7 @@ do
     world.remove = world_remove
     world.ask = world_ask
     world.spawn = world_spawn
+    world.despawn = world_despawn
     world.query = world_query
     world.has = world_has
     world.insert = world_insert :: world_insert
@@ -730,10 +772,11 @@ type world_impl = {
     remove: (self: world, entity: entity, component: entity) -> (),
     ask: (self: world, entity: entity, component: entity) -> any?,
     spawn: (self: world) -> entity,
+    despawn: (self: world, entity: entity) -> (),
     query: (self: world, ...entity) -> (trait: trait) -> (),
     has: (self: world, entity: entity, component: entity) -> boolean,
     insert: world_insert,
-    component: <T>(world: world, default: T) -> () -> component<T>
+    component: <T>(world: world, default: T) -> () -> component<T>,
 }
 
 export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
