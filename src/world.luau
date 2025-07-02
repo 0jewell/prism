@@ -137,19 +137,22 @@ local function register_component_index(
 
         -- check if the current component has been added
         -- to an archetype before
-        if component_index[component] then
-            local component_archetypes = component_index[component]
+        local component_archetypes = component_index[component]
 
+        if component_archetypes then
             -- if so, add it as a possible sub archetype or a super archetype
             for archetype_hash in pairs(component_archetypes) do
                 local other_archetype = archetypes[archetype_hash]
+
                 possible_subs[other_archetype] = true
             end
         else
-            component_index[component] = {}
+            local new_index = {}
+            component_index[component] = new_index
+            component_archetypes = new_index
         end
 
-        component_index[component][hash] = true
+        component_archetypes[hash] = true
     end
 
     return possible_subs
@@ -257,43 +260,6 @@ local function find_insert(
     return #track + 1
 end
 
-local function archetype_find_with_component(
-    world: world,
-    component: entity,
-    archetype: archetype
-): archetype
-    local track = archetype.track
-
-    local at = find_insert(track, component)
-    local new_track = {}
-
-    for _, id in ipairs(track) do
-        insert(new_track, id)
-    end
-    insert(new_track, at, component)
-
-    -- create a new archetype with the new tracked components
-    return ensure_archetype(world, new_track)
-end
-
-local function archetype_find_without_component(
-    world: world,
-    component: entity,
-    archetype: archetype
-): archetype
-    
-    local track = archetype.track
-    local at = table.find(track, component)
-
-    local new_track = {}
-    for _, id in ipairs(track) do
-        insert(new_track, id)
-    end
-    remove(new_track, at)
-
-    return ensure_archetype(world, new_track)
-end
-
 local function archetype_transition_add(
     world: world,
     component: entity,
@@ -307,7 +273,16 @@ local function archetype_transition_add(
     local cached_new_archetype = edge[component]
 
     if cached_new_archetype == nil then
-        local new_archetype = archetype_find_with_component(world, component, archetype)
+        local track = archetype.track
+
+        local at = find_insert(track, component)
+        local new_track = {}
+
+        for _, id in ipairs(track) do
+            insert(new_track, id)
+        end
+        insert(new_track, at, component)
+        local new_archetype = ensure_archetype(world, new_track)
 
         -- cache transition
         edge[component] = new_archetype
@@ -328,7 +303,17 @@ local function archetype_transition_remove(
     local cached_new_archetype = edge[component]
 
     if cached_new_archetype == nil then
-        local new_archetype = archetype_find_without_component(world, component, archetype)
+        local track = archetype.track
+
+        local at = table.find(track, component)
+        local new_track = {}
+
+        for _, id in ipairs(track) do
+            insert(new_track, id)
+        end
+        remove(new_track, at)
+
+        local new_archetype = ensure_archetype(world, new_track)
 
         -- cache transition
         edge[component] = new_archetype
