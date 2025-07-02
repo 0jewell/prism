@@ -625,6 +625,24 @@ local function world_despawn(
     world.records[entity] = nil
 end
 
+local function world_delete(
+    world: world,
+    entity: entity
+)
+    local record = world.records[entity]
+    if record == nil then
+        error(`entity {entity} does not exist`)
+    end
+
+    local archetype = record.archetype
+    local row = record.row
+
+    archetype_query_cleanup(world, entity, archetype)
+    archetype_swap_remove(world, row, archetype)
+
+    world.records[entity] = nil
+end
+
 local function field(
     component: entity,
     columns_map: { [number]: column },
@@ -719,6 +737,7 @@ world.remove = world_remove
 world.ask = world_ask
 world.spawn = world_spawn
 world.despawn = world_despawn
+world.delete = world_delete
 world.query = world_query
 world.has = world_has
 world.insert = world_insert :: world_insert
@@ -749,6 +768,7 @@ type world_impl = {
     ask: (self: world, entity: entity, component: entity) -> any?,
     spawn: (self: world) -> entity,
     despawn: (self: world, entity: entity) -> (),
+    delete: (self: world, entity: entity) -> (),
     query: (self: world, ...entity) -> (trait: trait) -> (),
     has: (self: world, entity: entity, component: entity) -> boolean,
     insert: world_insert,
