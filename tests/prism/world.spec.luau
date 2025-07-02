@@ -147,5 +147,28 @@ return function(testing: testing)
             w:query(a, b)(trait)
             expect(call_count).is(0)
         end)
+
+        test('should remove all components from entity on delete', function()
+            local w = world.new()
+            local a = w:spawn()
+            local b = w:spawn()
+            local e = w:spawn()
+
+            w:insert(e, a, { val = 1 })
+            w:insert(e, b, { val = 2 })
+
+            expect(w:has(e, a)).is(true)
+            expect(w:has(e, b)).is(true)
+
+            w:delete(e)
+
+            expect(w.records[e]).never_exists()
+            expect(w:has(e, a)).is(false)
+            expect(w:has(e, b)).is(false)
+
+            expect(function()
+                w:assign(e, a, true)
+            end).fails()
+        end)
     end)
 end

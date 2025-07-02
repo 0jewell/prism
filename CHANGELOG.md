@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added unit testing for archetype
 - Added unit testing for queries
 - Added `world:insert`
-- Added `world:component` to component metadatas
+- Added `world:component`
+- Added `world:delete` 
 
 ### Changes
 
