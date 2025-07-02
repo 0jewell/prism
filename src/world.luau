@@ -13,7 +13,7 @@ type scope = { unknown }
 export type trait = (id: entity, scope: scope) -> ()
 
 -- stores data for a single component across all entities in an archetype
-type column = { unknown }
+type column = { any }
 
 type set<T> = { [T]: boolean }
 
@@ -45,9 +45,18 @@ type component_impl<T> = {
     __call: (self: component_impl<T>) -> T
 }
 
-export type component<T> = typeof(
-    setmetatable({} :: component_fields<T>, {} :: component_impl<T>)
-)
+export type component<T> = typeof(setmetatable({} :: component_fields<T>, {} :: component_impl<T>))
+
+type world_fields = {
+    next_id: number,
+    records: { [entity]: record },
+    archetypes: { [string]: archetype }, -- map to hash -> archetype
+    consumed: { [trait]: set<entity> }, -- tracks which traits were already called to which entity
+    scopes: { [entity]: { [trait]: scope } }, -- per-entity scope storage used during trait execution
+    component_index: { [entity]: set<string> } -- map to component -> { hash }
+}
+
+export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
 
 local insert, remove = table.insert, table.remove
 
@@ -169,9 +178,6 @@ local function link_sub_archetypes(
         end
 
         local other_track = other_archetype.track
-        if #other_track == 0 then
-            continue
-        end
 
         if subset(other_track, track) then
             -- other is a subset of new
@@ -434,12 +440,12 @@ end
 
 local function archetype_swap_remove(
     world: world,
-    entity: entity,
     old_row: number,
     old_archetype: archetype
 )
     local entities = old_archetype.entities
     local last_index = #entities
+    local entity = entities[old_row]
     local last_entity = entities[last_index]
 
     -- swap the last entity into the same slot
@@ -448,21 +454,17 @@ local function archetype_swap_remove(
         entities[old_row] = last_entity
 
         -- update the record of the moved entity
-        local moved_record = world.records[last_entity]
-        moved_record.row = old_row
-
-        for _, id in ipairs(old_archetype.track) do
-            local column = old_archetype.columns_map[id]
-            column[old_row] = column[last_index]
-        end
+        local moving_record = world.records[last_entity]
+        moving_record.row = old_row
     end
 
     -- remove last entity from archetype
-    remove(entities, last_index)
+    entities[last_index] = nil
 
     -- cleanup its columns
     for _, id in ipairs(old_archetype.track) do
         local column = old_archetype.columns_map[id]
+        column[old_row] = column[last_index]
         column[last_index] = nil
     end
 end
@@ -495,7 +497,7 @@ local function archetype_entity_move(
     record.row = new_row
 
     -- remove entity from the old archetype
-    archetype_swap_remove(world, entity, old_row, old_archetype)
+    archetype_swap_remove(world, old_row, old_archetype)
 
     -- only remove scopes if the new archetype no longer satisfies the old one
     if new_archetype.supers[old_archetype] then
@@ -617,7 +619,7 @@ local function world_despawn(
     local new_row = record.row
 
     -- remove entity from root archetype
-    archetype_swap_remove(world, entity, new_row, new_archetype)
+    archetype_swap_remove(world, new_row, new_archetype)
 
     -- remove it from world records
     world.records[entity] = nil
@@ -712,17 +714,15 @@ local function world_insert(
     end
 end
 
-do
-    world.assign = world_assign
-    world.remove = world_remove
-    world.ask = world_ask
-    world.spawn = world_spawn
-    world.despawn = world_despawn
-    world.query = world_query
-    world.has = world_has
-    world.insert = world_insert :: world_insert
-    world.component = component
-end
+world.assign = world_assign
+world.remove = world_remove
+world.ask = world_ask
+world.spawn = world_spawn
+world.despawn = world_despawn
+world.query = world_query
+world.has = world_has
+world.insert = world_insert :: world_insert
+world.component = component
 
 type undecided_component<T, Prev> =
     component<T> -- metadata table: { id, default }
@@ -741,15 +741,6 @@ type world_insert = <T, T1, T2, T3, T4, T5>(
     g: T5?
 ) -> ()
 
-type world_fields = {
-    next_id: number,
-    records: { [entity]: record },
-    archetypes: { [string]: archetype }, -- map to hash -> archetype
-    consumed: { [trait]: set<entity> }, -- tracks which traits were already called to which entity
-    scopes: { [entity]: scope }, -- per-entity scope storage used during trait execution
-    component_index: { [entity]: set<string> } -- map to component -> { hash }
-}
-
 type world_impl = {
     __index: world_impl,
     new: () -> world,
@@ -763,7 +754,5 @@ type world_impl = {
     insert: world_insert,
     component: <T>(world: world, default: T) -> () -> component<T>,
 }
-
-export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
 
 return world
