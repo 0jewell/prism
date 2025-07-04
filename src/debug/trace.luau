@@ -8,7 +8,7 @@ local gray = colors.gray
 local world_module = require('../world')
 type mock_archetype = world_module.archetype
 type mock_record = world_module.record
-type mock_world = world_module.world
+type mock_world = world_module.mock_world
 
 local trace_enabled = false
 local trait_stack: { stackframe } = {}
@@ -114,13 +114,13 @@ local function debug_world(world: mock_world)
     print()
 
     for _, archetype in pairs(world.archetypes) do
-        debug_archetype(archetype)
+        debug_archetype(archetype :: any)
         print()
     end
 
     print(header('📦 ─── ENTITY RECORDS ───'))
     for entity, record in pairs(world.records) do
-        print('│ Entity ' .. value(entity) ..
+        print('│ Entity ' .. value(entity :: any) ..
             '  →  🧬 ' .. value(record.archetype.hash) ..
             '  @ Row ' .. value(record.row)
         )
@@ -138,7 +138,7 @@ local function debug_world(world: mock_world)
 end
 
 local function debug_entity(world: mock_world, entity: number)
-    local record = world.records[entity]
+    local record = world.records[entity :: any]
     if not record then
         print(error_text('🚫 Entity ' .. entity .. ' not found!'))
         return
@@ -157,7 +157,7 @@ local function debug_entity(world: mock_world, entity: number)
     end
 
     print()
-    debug_archetype(record.archetype, '  ')
+    debug_archetype(record.archetype :: any, '  ')
 end
 
 local function push_trace(label_str: string)
