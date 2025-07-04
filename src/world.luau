@@ -501,7 +501,14 @@ local function archetype_entity_move(
 
     -- remove entity from the old archetype
     archetype_swap_remove(world, old_row, old_archetype)
+end
 
+local function archetype_track_queries(
+    world: world,
+    entity: id,
+    old_archetype: archetype,
+    new_archetype: archetype
+)
     -- only remove scopes if the new archetype no longer satisfies the old one
     if new_archetype.supers[old_archetype] then
         archetype_query_cleanup(world, entity, old_archetype)
@@ -545,6 +552,9 @@ local function world_assign<D>(
     local column = new_archetype.columns_map[component]
     column[record.row] = data
 
+    -- calling traits after data is set
+    archetype_track_queries(world, entity, old_archetype, new_archetype)
+
     return data
 end
 
@@ -568,6 +578,9 @@ local function world_remove(
         local new_archetype = archetype_transition_remove(world, component, old_archetype)
 
         archetype_entity_move(world, new_archetype, entity, record)
+
+        -- calling traits after data is removed
+        archetype_track_queries(world, entity, old_archetype, new_archetype)
     end
 end
 
