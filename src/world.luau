@@ -762,8 +762,8 @@ local function world_insert(
             world_assign(world, entity, entry.id, entry.default)
             i += 1
 
-        -- case 2: direct component id followed by value
-        elseif typeof(entry) == 'number' and next_val ~= nil then
+        -- case 2: direct component id followed by value or nil
+        elseif typeof(entry) == 'number'  then
             local entry: any = entry
             world_assign(world, entity, entry, next_val)
             i += 2
