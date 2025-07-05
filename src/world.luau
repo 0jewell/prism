@@ -170,7 +170,19 @@ local function register_component_index(
     return possible_subs
 end
 
-local function link_sub_archetypes(
+local function archetype_link_traits(
+    archetype: archetype,
+    other_archetype: archetype
+)
+    local traits = archetype.traits
+    local other_traits = other_archetype.traits
+
+    for trait in other_traits do
+        traits[trait] = true
+    end
+end
+
+local function archetype_link_subs(
     world: world,
     archetype: archetype,
     track: { id }
@@ -188,12 +200,7 @@ local function link_sub_archetypes(
             other_archetype.supers[archetype] = true
 
             -- copy traits from other to new archetype
-            local traits = archetype.traits
-            local other_traits = other_archetype.traits
-
-            for trait in other_traits do
-                traits[trait] = true
-            end
+            archetype_link_traits(archetype, other_archetype)
 
         elseif subset(track, other_track) then
             -- new is a subset of other
@@ -220,7 +227,7 @@ local function ensure_archetype(
     register_component_index(world, track, hash, new_archetype)
 
     -- link this archetype with others based on component subsets
-    link_sub_archetypes(world, new_archetype, track)
+    archetype_link_subs(world, new_archetype, track)
 
     world.archetypes[hash] = new_archetype
     return new_archetype
@@ -384,12 +391,18 @@ end
 local function archetype_query_cleanup(
     world: world,
     entity: id,
-    archetype: archetype
+    archetype: archetype,
+    single_trait: trait?
 )
     local scopes = world.scopes
     local consumed = world.consumed
+    local traits = archetype.traits
 
-    for trait in archetype.traits do
+    if single_trait then
+        traits = { [single_trait] = true }
+    end
+
+    for trait in traits do
         local trait_consumed = consumed[trait]
 
         if not trait_consumed then
@@ -409,6 +422,21 @@ local function archetype_query_cleanup(
     end
 end
 
+local function archetype_propagate_remove(
+    world: world,
+    archetype: archetype,
+    trait: trait
+)
+    for _, id in pairs(archetype.entities) do
+        archetype_query_cleanup(world, id, archetype, trait)
+    end
+
+    for super_archetype in pairs(archetype.supers) do
+        super_archetype.traits[trait] = nil
+        archetype_propagate_remove(world, super_archetype, trait)
+    end
+end
+
 local function archetype_propagate_trait(
     world: world,
     archetype: archetype,
@@ -419,6 +447,7 @@ local function archetype_propagate_trait(
     end
 
     for super_archetype in pairs(archetype.supers) do
+        super_archetype.traits[trait] = true
         archetype_propagate_trait(world, super_archetype, trait)
     end
 end
@@ -438,6 +467,11 @@ local function world_query(
 
         -- cache trait in the archetype state
         archetype.traits[trait] = true
+
+        return function()
+            archetype.traits[trait] = false
+            archetype_propagate_remove(world, archetype, trait)
+        end
     end
 end
 
@@ -812,7 +846,7 @@ type world_impl = {
     spawn: (self: world) -> id,
     despawn: (self: world, entity: id) -> (),
     delete: (self: world, entity: id) -> (),
-    query: (self: world, ...id) -> (trait: trait) -> (),
+    query: (self: world, ...id) -> (trait: trait) -> () -> (),
     has: (self: world, entity: id, component: id) -> boolean,
     insert: world_insert,
     component: <T>(world: world, default: T) -> () -> component<T>,
@@ -834,7 +868,7 @@ export type mock_world = world_fields<entity> & {
     spawn: (self: mock_world) -> entity,
     despawn: (self: mock_world, entity: entity) -> (),
     delete: (self: mock_world, entity: entity) -> (),
-    query: (self: mock_world, ...entity) -> (trait: trait<entity>) -> (),
+    query: (self: mock_world, ...entity) -> (trait: trait<entity>) -> () -> (),
     has: (self: mock_world, entity: entity, component: entity) -> boolean,
     insert: world_insert<mock_world, entity>,
     component: <T>(world: mock_world, default: T) -> () -> component<T, entity>,
