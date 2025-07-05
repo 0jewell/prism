@@ -469,7 +469,7 @@ local function world_query(
         archetype.traits[trait] = true
 
         return function()
-            archetype.traits[trait] = false
+            archetype.traits[trait] = nil
             archetype_propagate_remove(world, archetype, trait)
         end
     end

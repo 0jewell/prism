@@ -149,5 +149,18 @@ return function(testing: testing)
             local scopes = w.scopes[e]
             expect(scopes[trait]).is(nil)
         end)
+
+        test('should remove trait from world when cancel function is called', function()
+            local w = world.new()
+            local a = w:spawn()
+            local b = w:spawn()
+
+            local trait = function() end
+            local cancel = w:query(a, b)(trait)
+
+            expect(w.archetypes['1_2'].traits[trait]).exists()
+            cancel()
+            expect(w.archetypes['1_2'].traits[trait]).never_exists()
+        end)
     end)
 end
