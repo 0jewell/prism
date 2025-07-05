@@ -30,7 +30,7 @@ export type archetype<usage = id> = {
     columns_map: { [usage]: column }, -- maps component id to its column
     subs: set<archetype<usage>>, -- archetypes that are subsets of this one,
     supers: set<archetype<usage>>, -- archetypes that are supersets of this one
-    traits: set<trait<usage>>, -- traits (callbacks) on this archetype,
+    traits: { [trait<usage>]: archetype<usage> }, -- traits (callbacks) on this archetype (includes linked traits),
     edge: archetype_edge<usage>
 }
 
@@ -178,7 +178,7 @@ local function archetype_link_traits(
     local other_traits = other_archetype.traits
 
     for trait in other_traits do
-        traits[trait] = true
+        traits[trait] = other_archetype
     end
 end
 
@@ -352,7 +352,7 @@ local function archetype_query_transition(
     local traits = archetype.traits
 
     if single_trait then
-        traits = { [single_trait] = true }
+        traits = { [single_trait] = archetype }
     end
 
     if next(traits) == nil then
@@ -399,10 +399,14 @@ local function archetype_query_cleanup(
     local traits = archetype.traits
 
     if single_trait then
-        traits = { [single_trait] = true }
+        traits = { [single_trait] = archetype }
     end
 
-    for trait in traits do
+    for trait, source in traits do
+        if source ~= archetype then
+            continue
+        end
+
         local trait_consumed = consumed[trait]
 
         if not trait_consumed then
@@ -447,7 +451,7 @@ local function archetype_propagate_trait(
     end
 
     for super_archetype in pairs(archetype.supers) do
-        super_archetype.traits[trait] = true
+        super_archetype.traits[trait] = archetype
         archetype_propagate_trait(world, super_archetype, trait)
     end
 end
@@ -466,7 +470,7 @@ local function world_query(
         archetype_propagate_trait(world, archetype, trait)
 
         -- cache trait in the archetype state
-        archetype.traits[trait] = true
+        archetype.traits[trait] = archetype
 
         return function()
             archetype.traits[trait] = nil

@@ -68,21 +68,21 @@ return function(testing: testing)
 
         test('should not apply query twice for same entity and trait', function()
             local w = world.new()
-            local compA = w:spawn()
-            local compB = w:spawn()
+            local a = w:spawn()
+            local b = w:spawn()
 
             local e = w:spawn()
 
-            w:assign(e, compA, { val = 1 })
-            w:assign(e, compB, { val = 2 })
+            w:assign(e, a, { val = 1 })
+            w:assign(e, b, { val = 2 })
 
             local call_count = 0
             local function trait(entity, scope)
                 call_count = call_count + 1
             end
 
-            w:query(compA, compB)(trait)
-            w:query(compA, compB)(trait)
+            w:query(a, b)(trait)
+            w:query(a, b)(trait)
 
             expect(call_count).is(1)
 
@@ -161,6 +161,39 @@ return function(testing: testing)
             expect(w.archetypes['1_2'].traits[trait]).exists()
             cancel()
             expect(w.archetypes['1_2'].traits[trait]).never_exists()
+        end)
+
+        test('should not retrigger query when component is removed inside another query', function()
+            warn()
+            local w = world.new()
+            local a = w:spawn()
+            local b = w:spawn()
+            local c = w:spawn()
+
+            local e = w:spawn()
+            --[ A, B ]
+            w:insert(e, a)
+            w:insert(e, b)
+
+            local first_calls = 0
+            local second_calls = 0
+
+            w:query(a, b)(function(entity)
+                first_calls += 1
+
+                -- [ A, B, C]
+                w:assign(entity, c)
+            end)
+
+            w:query(b, c)(function(entity)
+                second_calls += 1
+
+                -- [ A, B ]
+                w:remove(entity, c)
+            end)
+
+            expect(first_calls).is(1)
+            expect(second_calls).is(1)
         end)
     end)
 end
