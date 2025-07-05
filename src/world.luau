@@ -30,7 +30,7 @@ export type archetype<usage = id> = {
     columns_map: { [usage]: column }, -- maps component id to its column
     subs: set<archetype<usage>>, -- archetypes that are subsets of this one,
     supers: set<archetype<usage>>, -- archetypes that are supersets of this one
-    traits: { [trait<usage>]: archetype<usage> }, -- traits (callbacks) on this archetype (includes linked traits),
+    traits: set<trait<usage>>, -- traits (callbacks) on this archetype (includes linked traits),
     edge: archetype_edge<usage>
 }
 
@@ -178,7 +178,7 @@ local function archetype_link_traits(
     local other_traits = other_archetype.traits
 
     for trait in other_traits do
-        traits[trait] = other_archetype
+        traits[trait] = true
     end
 end
 
@@ -352,7 +352,7 @@ local function archetype_query_transition(
     local traits = archetype.traits
 
     if single_trait then
-        traits = { [single_trait] = archetype }
+        traits = { [single_trait] = true }
     end
 
     if next(traits) == nil then
@@ -388,6 +388,54 @@ local function archetype_query_transition(
     end
 end
 
+local function query_remove_trait(
+    consumed: { [trait]: set<id> },
+    scopes: { [id]: { [trait]: { unknown } } },
+    entity: id,
+    trait: trait
+)
+    local trait_consumed = consumed[trait]
+
+    if not trait_consumed then
+        return
+    end
+
+    -- remove entity from this trait
+    trait_consumed[entity] = nil
+
+    local entity_scopes = scopes[entity]
+
+    if entity_scopes then
+        -- cleanup entity's scope attached to this trait
+        -- clean(entity_scopes[trait])
+        entity_scopes[trait] = nil
+    end
+end
+
+local function archetype_query_transition_cleanup(
+    world: world,
+    entity: id,
+    old_archetype: archetype,
+    new_archetype: archetype,
+    single_trait: trait?
+)
+    local scopes = world.scopes
+    local consumed = world.consumed
+    local traits = old_archetype.traits
+
+    if single_trait then
+        traits = { [single_trait] = true }
+    end
+
+    for trait in traits do
+        if new_archetype.traits[trait] then
+            continue
+        end
+
+        query_remove_trait(consumed, scopes, entity, trait)
+    end
+end
+
 local function archetype_query_cleanup(
     world: world,
     entity: id,
@@ -399,30 +447,11 @@ local function archetype_query_cleanup(
     local traits = archetype.traits
 
     if single_trait then
-        traits = { [single_trait] = archetype }
+        traits = { [single_trait] = true }
     end
 
-    for trait, source in traits do
-        if source ~= archetype then
-            continue
-        end
-
-        local trait_consumed = consumed[trait]
-
-        if not trait_consumed then
-            continue
-        end
-
-        -- remove entity from this trait
-        trait_consumed[entity] = nil
-
-        local entity_scopes = scopes[entity]
-
-        if entity_scopes then
-            -- cleanup entity's scope attached to this trait
-            -- clean(entity_scopes[trait])
-            entity_scopes[trait] = nil
-        end
+    for trait in traits do
+        query_remove_trait(consumed, scopes, entity, trait)
     end
 end
 
@@ -451,7 +480,7 @@ local function archetype_propagate_trait(
     end
 
     for super_archetype in pairs(archetype.supers) do
-        super_archetype.traits[trait] = archetype
+        super_archetype.traits[trait] = true
         archetype_propagate_trait(world, super_archetype, trait)
     end
 end
@@ -470,7 +499,7 @@ local function world_query(
         archetype_propagate_trait(world, archetype, trait)
 
         -- cache trait in the archetype state
-        archetype.traits[trait] = archetype
+        archetype.traits[trait] = true
 
         return function()
             archetype.traits[trait] = nil
@@ -549,7 +578,7 @@ local function archetype_track_queries(
 )
     -- only remove scopes if the new archetype no longer satisfies the old one
     if new_archetype.supers[old_archetype] then
-        archetype_query_cleanup(world, entity, old_archetype)
+        archetype_query_transition_cleanup(world, entity, old_archetype, new_archetype)
     end
 
     -- enable queries for the new archetype

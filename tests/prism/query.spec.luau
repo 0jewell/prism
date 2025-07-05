@@ -164,7 +164,6 @@ return function(testing: testing)
         end)
 
         test('should not retrigger query when component is removed inside another query', function()
-            warn()
             local w = world.new()
             local a = w:spawn()
             local b = w:spawn()
@@ -194,6 +193,35 @@ return function(testing: testing)
 
             expect(first_calls).is(1)
             expect(second_calls).is(1)
+
+            -- w:assign(e, c)
+            -- expect(second_calls).is(2)
+        end)
+
+        test('should retrigger query when component is added again', function()
+            local w = world.new()
+            local a = w:spawn()
+            local b = w:spawn()
+            local c = w:spawn()
+
+            local e: any = w:spawn()
+            --[ A, B, C ]
+            w:assign(e, a)
+            w:assign(e, b)
+            w:assign(e, c)
+
+            local calls = 0
+            w:query(b, c)(function(entity)
+                calls += 1
+
+                -- [ A, B ]
+                w:remove(e, c)
+            end)
+            expect(calls).is(1)
+
+            -- [ A, B, C ]
+            w:assign(e, c)
+            expect(calls).is(2)
         end)
     end)
 end
