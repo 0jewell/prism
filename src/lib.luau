@@ -1,34 +1,15 @@
-local Types = require('./Types')
+local world = require('./world')
+export type world = world.mock_world
+export type entity<T = any> = world.entity<T>
+export type component<T> = world.component<T, entity>
 
-local Clean = require('./Modules/Clean')
+export type archetype = world.archetype<entity>
+export type record = world.record<entity>
 
-local Registry = require('./Registry')
-export type Registry = Types.Registry
-export type Entity = Types.Entity
+local debugger = require('./debug/trace')
+export type stackframe = debugger.stackframe
 
-local Query = require('./Query')
-export type Query<P... = ...any> = Types.Query<P...>
-
-local Piece = require('./Piece')
-local Tag = Piece.tag
-local Tags = Piece.tags
-local From = Piece.from
-export type Piece<D = unknown> = Types.Piece<D>
-export type UsedAs<D = never> = Types.UsedAs<D>
-
-export type Data  = Types.Data
-
-return table.freeze {
-    Registry = Registry.New,
-    Query = Query.New,
-    Piece = Piece.New,
-
-    from = From,
-    tag = Tag,
-    tags = Tags,
-    Clean = Clean,
-
-    OnAdd = Piece.OnAdd,
-    OnRemove = Piece.OnRemove,
-    BuiltInPiece = Piece.BuiltInPiece
+return {
+    world = world,
+    debugger = debugger
 }

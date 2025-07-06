@@ -9,6 +9,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Added benchmark tests for entity insertion performance
+- Added unit testing for archetype
+- Added unit testing for queries
+- Added `world:insert`
+- Added `world:component`
+- Added `world:delete` 
+
+### Changes
+
+- Moved `prism.Query` function to the world
+- Changed registry module name to "world"
+- Changed general syntax for creating queries
+- Changed `registry:add` to `world:assign`
+- Changed `registry:entity` to `world:spawn`
+- Changed `registry:remove` to `world:remove`
+- Changed `registry:contains` to `world:has`
+- Changed `registry:delete` to `world:despawn`
+
+--------------------------------------------------------------------------------
+
+## 0.1.1
+
+### Added
 
 - Add `cast` function to the registry
 - Add `pair` function to the registry

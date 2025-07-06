@@ -11,13 +11,15 @@ local tests = Tiniest.collect_tests(function()
         end)
     end
 
-    describeFromFile('prism/Query')
+    describeFromFile('prism/archetype')
+    describeFromFile('prism/query')
+    describeFromFile('prism/world')
 end)
 
 do
     local results = Tiniest.run_tests(tests, {})
 
     if results.status_tally.fail > 0 then
-        error('One or more tests failed.')
+        error('one or more tests failed.')
     end
 end

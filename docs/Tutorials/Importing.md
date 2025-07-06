@@ -4,14 +4,17 @@ After downloading **Prism**, it should be in a ``Packages`` folder on ``Replicat
 
 When using Prism as a variable in your code, it contains a dictionary with the following structure:
 
-!!! caution "Freezed data"
-    The returned table is freezed.
+```luau title="Prism.luau"
+return {
+    world = require(script.world)
+}
+```
+
+For use outside of Roblox, it contains the following structure:
 
 ```luau title="Prism.luau"
 return {
-    Registry = require(script.Registry),
-    Query = require(script.Query),
-    Piece = require(script.Piece),
-    Clean = require(script.Modules.Clean)
+    world = require('./world'),
+    debugger = require('./debugger')
 }
 ```

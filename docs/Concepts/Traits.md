@@ -4,79 +4,58 @@ Traits define the behavior of entities by operating on entities that contain spe
 They act as systems that process and modify entity states dynamically.
 
 ### Understading them
-A Trait is executed whenever an entity matches the required Pieces specified in its query.
+
+A Trait is executed whenever an entity matches the required components specified in a query.
 
 ```lua
-local Query = Prism.Query { query = function() return health end }
+local entity = world:spawn()
+local health = world:spawn()
 
-local counting = 1
+world:insert(entity, health, 100)
 
-Query:trait('Regenerate Health', function(data, health)
-    print('This is the', counting, 'time')
-    counting += 1
+local counter = 1
+
+world:query(health) (function(entity, scope)
+    print('This is the', counter, 'time')
+    counter += 1
 end)
-
-Registry:include { Query }
-
-Registry:add(entity, health)
---> This is the 1 time
+--> this is the 1 time
 ```
+
+!!! note 
+    When a query is created in runtime, every entity that matches it
+    will be applied. This mean you can can insert components before actually
+    creating any systems
 
 If the entity no longer meets the requirements, the trait is removed.
 If it later meets the conditions again, the trait is reapplied.
 
 ```lua
-Registry:remove(entity, health)
+world:remove(entity, health)
 
-Registry:add(entity, health)
---> This is the 2 time
+world:insert(entity, health, { value = 50 })
+-- > This is the 2 time
 ```
+
 ### Trait Cleanup
-Traits can be added or removed dynamically, but removing a trait does not automatically revert changes.
-You must manually handle the cleanup of any data associated with it.
+
+When writing traits that create or manage instances or resources,
+it's important to manually clean them up when the trait no longer applies.
 
 ```lua
-return Prism.Query {
-    query = function()
-        return part
-    end
-}
+local components = require(path.to.components)
+local part = components.part
 
-:trait('Create part', function(data, part)
-    local instance = Instance.new('Part')
+return function(world)
+    world:query(part) (function(entity, scope)
+        local instance = Instance.new('Part')
+        table.insert(scope, instance)
 
-    -- Store the instance for cleanup when the trait is removed
-    table.insert(data.cleaning, instance)
-
-    part.data.instance = instance
-end)
+        world:assign(entity, part, instance)
+    end)
+end
 ```
 
 !!! note "Modular Code"
-    Returning queries from modules allows for a cleaner codebase.
+    Separating your queries in modules allows for a cleaner codebase.
     From now on, we will follow this approach.
-
-### Trait Execution Order
-A single query can have multiple traits.
-Traits are executed in the order they are defined within the query.
-
-```lua
-return Prism.Query {
-    query = function()
-        return part
-    end
-}
-:trait('Create part', function(data, part)
-    local instance = Instance.new('Part')
-
-    -- Store the instance for cleanup when the Trait is removed
-    table.insert(data.cleaning, instance)
-
-    part.data.instance = instance
-end)
-
-:trait('Print part', function(data, part)
-    print(part.data.instance)
-    --> 'Part'
-end)
-```

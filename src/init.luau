@@ -1,13 +1,11 @@
-local Lib = require(script.lib)
+local world = require(script.world)
+export type world = world.mock_world
+export type entity<T = any> = world.entity<T>
+export type component<T> = world.component<T, entity>
 
-export type Registry = Lib.Registry
-export type Entity = Lib.Entity
+export type archetype = world.archetype<entity>
+export type record = world.record<entity>
 
-export type Query<P... = ...any> = Lib.Query<P...>
-
-export type Piece<D = unknown> = Lib.Piece<D>
-
-export type Data  = Lib.Data
-export type UsedAs<D = never> = Lib.UsedAs<D>
-
-return Lib
+return {
+    world = world
+}

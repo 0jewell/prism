@@ -1,58 +1,54 @@
-# Entities and Pieces
+# Entities and components
 
-Entities are unique identifiers that act as containers for Pieces (components), defining their data and state.
-Entities do not store logic or behavior directly; instead, Traits (systems) operate on entities based on their assigned Pieces.
+Entities are unique identifiers that act as containers for components, defining their data and state.
+Entities do not store logic or behavior directly; instead, [Traits](Traits.md) (systems) operate on entities based on their assigned components.
 
-```lua
-local entity = Registry:entity()
-```
-
-### Pieces
-A **Piece** is a data container that is added to an entity. Pieces can serve various purposes such as:
-
-- Serving as simple tags (e.g., "this entity is a `Player`").
-```lua
-local player = Registry:entity()
-
---// Entities that are attached to other entities are called Pieces too.
-Registry:add(entity, player)
-```
-
-- Holding structured data (e.g., "this entity has `Health` with a maximum of `100`").
-```lua
-local health = Piece { maximum = 100 }
-Registry:add(entity, health)
-```
-
-- Creating associations between entities (e.g., "Enemy is `targeting` Player").
-```lua
-local enemy = Registry:entity()
-local targeting = Registry:entity()
-local player = Registry:entity()
-
-Registry:add(enemy, Registry:pair(targeting, player))
-```
-
-- Optionally storing extra information (e.g., "Enemy is `looking` for player within `20` meters").
-```lua
-local enemy = Registry:entity()
-local looking = Registry:entity()
-local player = Registry:entity()
-
-Registry:add(enemy, Registry:pair(looking, player), { distance = 20 })
-```
-
-### Pieces are entities
-
-Since Pieces are the only way to define an entity’s data, every Piece is inherently an entity.
-When a Piece is created, it automatically becomes an entity within the registry. This mean that all of the API that apply to regular entities also apply to pieces.
+### 
 
 ```lua
-local Piece = Prism.Piece
-
-local health, networked = Piece(...), Piece(...)
-Registry:add(health, networked)
+local entity = world:spawn()
 ```
 
-In general, Pieces are primarily used to define data structures before runtime.
-They serve as blueprints for entity composition, ensuring that the necessary attributes are established before the game logic starts executing.
+### Components
+
+To first understand components, you need to understand that: **components are also entities.**
+
+In most ECS libraries, every component is simply an **entity used as a label or identifier for data**.
+When you create something like `health` or `player`, you're just creating an entity that serves a specific role in context.
+
+The distinction between an "entity" and a "component" is entirely **semantic and contextual**:
+
+- When an entity is used to **store data, tags, or relationships** inside another entity, we call it a *component*.
+- When it's used as a **standalone game object** (like a player, enemy, or projectile), we refer to it as a *primary entity*.
+
+```luau
+local player = world:spawn() -- 'player' is a game object
+local health = world:spawn() -- 'health' is a component
+world:assign(player, health, 100) -- Here, 'health' acts as a component
+```
+
+Because components are just identifiers, **you could technically assign any entity to another — even the same one:**
+```lua
+world:assign(player, player, player)
+```
+
+This works because the world treats the *second* parameter (`player`) as the **component label**,
+and the *third* as the **value** being associated. What matters is not what the entity "is," **but how it's used.**
+
+### Use cases
+
+In general **component** is simple a information that is added to an entity.
+They can serve various purposes such as:
+
+- Serving as simple tags (e.g., "this entity is a `player`").
+```luau
+local player = world:spawn()
+world:assign(entity, player)
+```
+
+- Holding structured data (e.g., "this entity has `health` with a maximum of `100`").
+```luau
+local health = world:spawn()
+local data = { max = 100, current = 100 }
+world:assign(entity, health, data)
+```
