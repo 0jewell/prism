@@ -1,5 +1,5 @@
 name = "0jewell/prism"
-version = "0.1.1"
+version = "0.2.0"
 description = "A ECS library based on reactive systems"
 authors = ["0jewell"]
 repository = "https://github.com/0jewell/Prism"
