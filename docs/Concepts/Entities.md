@@ -5,7 +5,7 @@ Entities do not store logic or behavior directly; instead, [Traits](Traits.md) (
 
 ### 
 
-```lua
+```lua linenums="1"
 local entity = world:spawn()
 ```
 
@@ -21,14 +21,14 @@ The distinction between an "entity" and a "component" is entirely **semantic and
 - When an entity is used to **store data, tags, or relationships** inside another entity, we call it a *component*.
 - When it's used as a **standalone game object** (like a player, enemy, or projectile), we refer to it as a *primary entity*.
 
-```luau
+```luau linenums="1"
 local player = world:spawn() -- 'player' is a game object
 local health = world:spawn() -- 'health' is a component
 world:assign(player, health, 100) -- Here, 'health' acts as a component
 ```
 
 Because components are just identifiers, **you could technically assign any entity to another — even the same one:**
-```lua
+```lua linenums="4"
 world:assign(player, player, player)
 ```
 
@@ -41,13 +41,13 @@ In general **component** is simple a information that is added to an entity.
 They can serve various purposes such as:
 
 - Serving as simple tags (e.g., "this entity is a `player`").
-```luau
+```luau linenums="1"
 local player = world:spawn()
 world:assign(entity, player)
 ```
 
 - Holding structured data (e.g., "this entity has `health` with a maximum of `100`").
-```luau
+```luau linenums="1"
 local health = world:spawn()
 local data = { max = 100, current = 100 }
 world:assign(entity, health, data)

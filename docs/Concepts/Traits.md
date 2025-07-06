@@ -7,19 +7,18 @@ They act as systems that process and modify entity states dynamically.
 
 A Trait is executed whenever an entity matches the required components specified in a query.
 
-```lua
+```lua linenums="1" hl_lines="11"
 local entity = world:spawn()
 local health = world:spawn()
 
-world:insert(entity, health, 100)
-
-local counter = 1
+local counter = 0
 
 world:query(health) (function(entity, scope)
     print('This is the', counter, 'time')
     counter += 1
 end)
---> this is the 1 time
+
+world:insert(entity, health, 100) --> this is the 1 time
 ```
 
 !!! note 
@@ -30,19 +29,18 @@ end)
 If the entity no longer meets the requirements, the trait is removed.
 If it later meets the conditions again, the trait is reapplied.
 
-```lua
+```lua linenums="12" hl_lines="3"
 world:remove(entity, health)
 
-world:insert(entity, health, { value = 50 })
--- > This is the 2 time
+world:insert(entity, health, { value = 50 }) --> this is the 2 time
 ```
 
 ### Trait Cleanup
 
 When writing traits that create or manage instances or resources,
-it's important to manually clean them up when the trait no longer applies.
+it's important to manually add them to the cleaning scope.
 
-```lua
+```lua linenums="1" hl_lines="7"
 local components = require(path.to.components)
 local part = components.part
 

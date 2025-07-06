@@ -4,7 +4,7 @@ This example shows how to use Fusion states in pieces data.
 
 ### Overview
 
-```lua
+```lua linenums="1"
 local Packages = game.ReplicatedStorage.Packages
 
 local Fusion = require(Packages.Fusion)
