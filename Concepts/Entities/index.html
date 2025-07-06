@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#entities-and-pieces" class="md-skip">
+        <a href="#entities-and-components" class="md-skip">
           Skip to content
         </a>
       
@@ -569,18 +569,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pieces" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
-      Pieces
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#pieces-are-entities" class="md-nav__link">
+  <a href="#components" class="md-nav__link">
     <span class="md-ellipsis">
-      Pieces are entities
+      Components
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use cases
     </span>
   </a>
   
@@ -741,18 +750,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pieces" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
-      Pieces
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#pieces-are-entities" class="md-nav__link">
+  <a href="#components" class="md-nav__link">
     <span class="md-ellipsis">
-      Pieces are entities
+      Components
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use cases
     </span>
   </a>
   
@@ -774,7 +792,7 @@
 
 
   
-    <a href="https://github.com/0jewell/Prism/edit/main/docs/Concepts/Entities.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/0jewell/Prism/edit/main/docs/Concepts/Entities.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -782,57 +800,48 @@
   
 
 
-<h1 id="entities-and-pieces">Entities and Pieces</h1>
-<p>Entities are unique identifiers that act as containers for Pieces (components), defining their data and state.
-Entities do not store logic or behavior directly; instead, Traits (systems) operate on entities based on their assigned Pieces.</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">entity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
+<h1 id="entities-and-components">Entities and components</h1>
+<p>Entities are unique identifiers that act as containers for components, defining their data and state.
+Entities do not store logic or behavior directly; instead, <a href="../Traits/">Traits</a> (systems) operate on entities based on their assigned components.</p>
+<h3 id="_1"></h3>
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">entity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nf">spawn</span><span class="p">()</span>
 </code></pre></div>
-<h3 id="pieces">Pieces</h3>
-<p>A <strong>Piece</strong> is a data container that is added to an entity. Pieces can serve various purposes such as:</p>
+<h3 id="components">Components</h3>
+<p>To first understand components, you need to understand that: <strong>components are also entities.</strong></p>
+<p>In most ECS libraries, every component is simply an <strong>entity used as a label or identifier for data</strong>.
+When you create something like <code>health</code> or <code>player</code>, you're just creating an entity that serves a specific role in context.</p>
+<p>The distinction between an "entity" and a "component" is entirely <strong>semantic and contextual</strong>:</p>
+<ul>
+<li>When an entity is used to <strong>store data, tags, or relationships</strong> inside another entity, we call it a <em>component</em>.</li>
+<li>When it's used as a <strong>standalone game object</strong> (like a player, enemy, or projectile), we refer to it as a <em>primary entity</em>.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span><span class="w"> </span><span class="c1">-- &#39;player&#39; is a game object</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span><span class="w"> </span><span class="c1">-- &#39;health&#39; is a component</span>
+<span class="nv">world</span><span class="p">:</span><span class="nc">assign</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Here, &#39;health&#39; acts as a component</span>
+</code></pre></div>
+<p>Because components are just identifiers, <strong>you could technically assign any entity to another — even the same one:</strong>
+<div class="highlight"><pre><span></span><code><span class="nv">world</span><span class="p">:</span><span class="nf">assign</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
+</code></pre></div></p>
+<p>This works because the world treats the <em>second</em> parameter (<code>player</code>) as the <strong>component label</strong>,
+and the <em>third</em> as the <strong>value</strong> being associated. What matters is not what the entity "is," <strong>but how it's used.</strong></p>
+<h3 id="use-cases">Use cases</h3>
+<p>In general <strong>component</strong> is simple a information that is added to an entity.
+They can serve various purposes such as:</p>
 <ul>
 <li>
-<p>Serving as simple tags (e.g., "this entity is a <code>Player</code>").
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-
-<span class="c1">--// Entities that are attached to other entities are called Pieces too.</span>
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
+<p>Serving as simple tags (e.g., "this entity is a <code>player</code>").
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span>
+<span class="nv">world</span><span class="p">:</span><span class="nc">assign</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
-<p>Holding structured data (e.g., "this entity has <code>Health</code> with a maximum of <code>100</code>").
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Piece</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">maximum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="p">}</span>
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
-</code></pre></div></p>
-</li>
-<li>
-<p>Creating associations between entities (e.g., "Enemy is <code>targeting</code> Player").
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">enemy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">targeting</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">enemy</span><span class="p">,</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">pair</span><span class="p">(</span><span class="nv">targeting</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">))</span>
-</code></pre></div></p>
-</li>
-<li>
-<p>Optionally storing extra information (e.g., "Enemy is <code>looking</code> for player within <code>20</code> meters").
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">enemy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">looking</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-<span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">entity</span><span class="p">()</span>
-
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">enemy</span><span class="p">,</span><span class="w"> </span><span class="nv">Registry</span><span class="p">:</span><span class="nf">pair</span><span class="p">(</span><span class="nv">looking</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">),</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">distance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="p">})</span>
+<p>Holding structured data (e.g., "this entity has <code>health</code> with a maximum of <code>100</code>").
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100</span><span class="p">,</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100</span><span class="w"> </span><span class="p">}</span>
+<span class="nv">world</span><span class="p">:</span><span class="nc">assign</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="nv">data</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 </ul>
-<h3 id="pieces-are-entities">Pieces are entities</h3>
-<p>Since Pieces are the only way to define an entity’s data, every Piece is inherently an entity.
-When a Piece is created, it automatically becomes an entity within the registry. This mean that all of the API that apply to regular entities also apply to pieces.</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">Piece</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Piece</span>
-
-<span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="nv">networked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Piece</span><span class="p">(...),</span><span class="w"> </span><span class="nf">Piece</span><span class="p">(...)</span>
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="nv">networked</span><span class="p">)</span>
-</code></pre></div>
-<p>In general, Pieces are primarily used to define data structures before runtime.
-They serve as blueprints for entity composition, ensuring that the necessary attributes are established before the game logic starts executing.</p>
 
 
 
@@ -998,10 +1007,10 @@ They serve as blueprints for entity composition, ensuring that the necessary att
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.tracking", "navigation.sections", "navigation.instant", "navigation.instant.progress", "navigation.indexes", "navigation.footer", "navigation.expand", "search.suggest", "search.highlight", "search.share", "content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.tracking", "navigation.sections", "navigation.instant", "navigation.instant.progress", "navigation.indexes", "navigation.footer", "navigation.expand", "search.suggest", "search.highlight", "search.share", "content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
     
   </body>

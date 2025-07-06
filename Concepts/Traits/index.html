@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -609,15 +609,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#trait-execution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      Trait Execution Order
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -767,15 +758,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#trait-execution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      Trait Execution Order
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -792,7 +774,7 @@
 
 
   
-    <a href="https://github.com/0jewell/Prism/edit/main/docs/Concepts/Traits.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/0jewell/Prism/edit/main/docs/Concepts/Traits.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -804,73 +786,53 @@
 <p>Traits define the behavior of entities by operating on entities that contain specific Pieces.
 They act as systems that process and modify entity states dynamically.</p>
 <h3 id="understading-them">Understading them</h3>
-<p>A Trait is executed whenever an entity matches the required Pieces specified in its query.</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">Query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span><span class="p">}</span>
+<p>A Trait is executed whenever an entity matches the required components specified in a query.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">entity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nf">spawn</span><span class="p">()</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nf">spawn</span><span class="p">()</span>
 
-<span class="kd">local</span><span class="w"> </span><span class="nv">counting</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="nv">world</span><span class="p">:</span><span class="nf">insert</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
 
-<span class="nv">Query</span><span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Regenerate Health&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
-<span class="w">    </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;This is the&#39;</span><span class="p">,</span><span class="w"> </span><span class="nv">counting</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="w">    </span><span class="nv">counting</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">counter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+
+<span class="nv">world</span><span class="p">:</span><span class="nf">query</span><span class="p">(</span><span class="nv">health</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;This is the&#39;</span><span class="p">,</span><span class="w"> </span><span class="nv">counter</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">counter</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span>
 <span class="kr">end</span><span class="p">)</span>
-
-<span class="nv">Registry</span><span class="p">:</span><span class="py">include</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">Query</span><span class="w"> </span><span class="p">}</span>
-
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
-<span class="c1">--&gt; This is the 1 time</span>
+<span class="c1">--&gt; this is the 1 time</span>
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When a query is created in runtime, every entity that matches it
+will be applied. This mean you can can insert components before actually
+creating any systems</p>
+</div>
 <p>If the entity no longer meets the requirements, the trait is removed.
 If it later meets the conditions again, the trait is reapplied.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">Registry</span><span class="p">:</span><span class="nf">remove</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">world</span><span class="p">:</span><span class="nf">remove</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
 
-<span class="nv">Registry</span><span class="p">:</span><span class="nf">add</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
-<span class="c1">--&gt; This is the 2 time</span>
+<span class="nv">world</span><span class="p">:</span><span class="nf">insert</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="p">})</span>
+<span class="c1">-- &gt; This is the 2 time</span>
 </code></pre></div>
 <h3 id="trait-cleanup">Trait Cleanup</h3>
-<p>Traits can be added or removed dynamically, but removing a trait does not automatically revert changes.
-You must manually handle the cleanup of any data associated with it.</p>
-<div class="highlight"><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">part</span>
-<span class="w">    </span><span class="kr">end</span>
-<span class="p">}</span>
+<p>When writing traits that create or manage instances or resources,
+it's important to manually clean them up when the trait no longer applies.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">components</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="nv">path</span><span class="p">.</span><span class="py">to</span><span class="p">.</span><span class="py">components</span><span class="p">)</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">components</span><span class="p">.</span><span class="py">part</span>
 
-<span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Create part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
-<span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
+<span class="kr">return</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">world</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">world</span><span class="p">:</span><span class="nf">query</span><span class="p">(</span><span class="nv">part</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+<span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">scope</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
 
-<span class="w">    </span><span class="c1">-- Store the instance for cleanup when the trait is removed</span>
-<span class="w">    </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">data</span><span class="p">.</span><span class="py">cleaning</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
-
-<span class="w">    </span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">instance</span>
-<span class="kr">end</span><span class="p">)</span>
+<span class="w">        </span><span class="nv">world</span><span class="p">:</span><span class="nf">assign</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
+<span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+<span class="kr">end</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Modular Code</p>
-<p>Returning queries from modules allows for a cleaner codebase.
+<p>Separating your queries in modules allows for a cleaner codebase.
 From now on, we will follow this approach.</p>
 </div>
-<h3 id="trait-execution-order">Trait Execution Order</h3>
-<p>A single query can have multiple traits.
-Traits are executed in the order they are defined within the query.</p>
-<div class="highlight"><pre><span></span><code><span class="kr">return</span><span class="w"> </span><span class="nv">Prism</span><span class="p">.</span><span class="py">Query</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
-<span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">part</span>
-<span class="w">    </span><span class="kr">end</span>
-<span class="p">}</span>
-<span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Create part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
-<span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">&#39;Part&#39;</span><span class="p">)</span>
-
-<span class="w">    </span><span class="c1">-- Store the instance for cleanup when the Trait is removed</span>
-<span class="w">    </span><span class="nb">table.insert</span><span class="p">(</span><span class="nv">data</span><span class="p">.</span><span class="py">cleaning</span><span class="p">,</span><span class="w"> </span><span class="nv">instance</span><span class="p">)</span>
-
-<span class="w">    </span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">instance</span>
-<span class="kr">end</span><span class="p">)</span>
-
-<span class="p">:</span><span class="nf">trait</span><span class="p">(</span><span class="s1">&#39;Print part&#39;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">)</span>
-<span class="w">    </span><span class="nb">print</span><span class="p">(</span><span class="nv">part</span><span class="p">.</span><span class="py">data</span><span class="p">.</span><span class="py">instance</span><span class="p">)</span>
-<span class="w">    </span><span class="c1">--&gt; &#39;Part&#39;</span>
-<span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
 
 
 
@@ -1036,10 +998,10 @@ Traits are executed in the order they are defined within the query.</p>
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.tracking", "navigation.sections", "navigation.instant", "navigation.instant.progress", "navigation.indexes", "navigation.footer", "navigation.expand", "search.suggest", "search.highlight", "search.share", "content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.tracking", "navigation.sections", "navigation.instant", "navigation.instant.progress", "navigation.indexes", "navigation.footer", "navigation.expand", "search.suggest", "search.highlight", "search.share", "content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
     
   </body>
