@@ -80,10 +80,16 @@ nav:
   - Tutorials:
     - Installing: Tutorials/Installing.md
     - Importing: Tutorials/Importing.md
+    - Why ECS: Tutorials/Why-ECS.md
+    - Getting Started: Tutorials/Getting-started.md
 
     - Concepts:
       - Entities: Concepts/Entities.md
       - Traits: Concepts/Traits.md
+
+    - Guides:
+      - Strict typing: Guides/Strict-typing.md
+      - CollectionService: Guides/Collection-service.md
 
   - Examples:
     - Using Fusion: Examples/Fusion.md
