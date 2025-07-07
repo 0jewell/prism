@@ -3,14 +3,15 @@
 --!strict
 --!nolint LocalShadow
 
+-- modules
+local clean = require('./clean')
+type scope = clean.scope
+
 -- types
 
 -- unique id for an entity
 type id = number
 export type entity<T = any> = { __t: T }
-
--- storage for temporary data passed to traits
-type scope = { unknown }
 
 -- function applied to entities matching a query
 export type trait<usage = id> = (id: usage, scope: scope) -> ()
@@ -406,9 +407,12 @@ local function query_remove_trait(
     local entity_scopes = scopes[entity]
 
     if entity_scopes then
+
         -- cleanup entity's scope attached to this trait
-        -- clean(entity_scopes[trait])
-        entity_scopes[trait] = nil
+        if entity_scopes[trait] then
+            clean(entity_scopes[trait])
+            entity_scopes[trait] = nil
+        end
     end
 end
 
@@ -505,6 +509,24 @@ local function world_query(
             archetype.traits[trait] = nil
             archetype_propagate_remove(world, archetype, trait)
         end
+    end
+end
+
+local function world_query_once(
+    world: world,
+    ...: id
+)
+    local track = { ... }
+    table.sort(track)
+
+    return function(trait: trait)
+        local archetype = ensure_archetype(world, track)
+
+        -- call this trait for all entities
+        archetype_propagate_trait(world, archetype, trait)
+        
+        -- remove it in sequence
+        archetype_propagate_remove(world, archetype, trait)
     end
 end
 
@@ -849,6 +871,7 @@ world.spawn = world_spawn
 world.despawn = world_despawn
 world.delete = world_delete
 world.query = world_query
+world.query_once = world_query_once
 world.has = world_has
 world.insert = world_insert
 world.component = component
@@ -880,6 +903,7 @@ type world_impl = {
     despawn: (self: world, entity: id) -> (),
     delete: (self: world, entity: id) -> (),
     query: (self: world, ...id) -> (trait: trait) -> () -> (),
+    query_once: (self: world, ...id) -> (trait: trait) -> (),
     has: (self: world, entity: id, component: id) -> boolean,
     insert: world_insert,
     component: <T>(world: world, default: T) -> () -> component<T>,
@@ -902,6 +926,7 @@ export type mock_world = world_fields<entity> & {
     despawn: (self: mock_world, entity: entity) -> (),
     delete: (self: mock_world, entity: entity) -> (),
     query: (self: mock_world, ...entity) -> (trait: trait<entity>) -> () -> (),
+    query_once: (self: mock_world, ...entity) -> (trait: trait<entity>) -> (),
     has: (self: mock_world, entity: entity, component: entity) -> boolean,
     insert: world_insert<mock_world, entity>,
     component: <T>(world: mock_world, default: T) -> () -> component<T, entity>,
