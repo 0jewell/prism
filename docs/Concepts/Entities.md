@@ -52,3 +52,6 @@ local health = world:spawn()
 local data = { max = 100, current = 100 }
 world:assign(entity, health, data)
 ```
+
+!!! tip Recommendation
+    We recommend you [to check this page](../Guides/Strict-typing.md) on typing your components data.
