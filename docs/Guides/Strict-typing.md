@@ -2,11 +2,11 @@
 
 ### Type notations
 
-Programming blindly is hard and it can be frustrating. If you frequently open 2 Visual
-Studio Code tabs or maybe switch files on Studio you need to know there's something wrong.
+Programming without guidance can be difficult and frustrating. If you ofthen find yourself opening 2 Visual
+Studio Code tabs or perhaps constantly switching files on Studio, that's usually a sign that something is not quite right.
 
-In Luau, you can add **type notations** to variables, return types and parameters.
-And when type notations get really complex, the type inference simple won't work anymore, or type it as `any`.
+In Luau, it is possible to add **type annotations** to variables, return types and parameters.
+And when type annotations get too complex, the type inference simple won't work anymore, or it will default to `any`.
 
 ```luau linenums="1"
 local var: number = 10
@@ -18,8 +18,8 @@ end
 
 ### How to type components
 
-Components are just numbers, aren't they? Well, you are not wrong. But the type checker does not need to know that.
-In another words, you can lie by **typing the entity as a table**, with a fake field holding its type.
+Components are just numbers, aren't they? Well, that's technically correct. But the type checker does not need to know that.
+In other words, you can simulate the component's type by **annotating it as a table**, with a fake field holding its type.
 
 ```luau linenums="1" hl_lines="8"
 local world = require(path.to.world)
@@ -43,7 +43,7 @@ _t: {
 
 ### Getting component data
 
-You can get full type check support when asking for a data using a typed component:
+You can get full type check support when asking for data using a typed component:
 
 ```luau linenums="8" hl_lines="8"
 local entity = world:spawn()
