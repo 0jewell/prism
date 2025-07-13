@@ -40,17 +40,6 @@ export type record<usage = id> = {
     row: number, -- row index in the archetype's columns
 }
 
-type component_fields<T, usage = id> = {
-    default: T,
-    id: usage
-}
-
-type component_impl<T, usage = id> = {
-    __call: (self: component_impl<T, usage>) -> T
-}
-
-export type component<T, usage = id> = typeof(setmetatable({} :: component_fields<T, usage>, {} :: component_impl<T, usage>))
-
 type world_fields<usage = id> = {
     next_id: number,
     records: { [usage]: record<usage> },
@@ -810,36 +799,10 @@ local function world_ask<T>(
             field(e, columns_map, row)
 end
 
-local function component<T>(
-    world: world,
-    default: T
-): () -> component<T>
-    local id = world_spawn(world)
-
-    local metadata = { id = id, default = default }
-    local metatable = {}
-
-    function metatable:__call()
-        if typeof(default) == 'table' then
-            local new_value: any = table.clone(default)
-
-            return new_value
-        end
-
-        return default
-    end
-
-    setmetatable(metadata, metatable)
-
-    return function()
-        return metadata
-    end
-end
-
 local function world_insert(
     world: world,
     entity: id,
-    ...: undecided_component<unknown, any>
+    ...: undecided<unknown, any>
 )
     local args = { ... }
     local i = 1
@@ -848,13 +811,7 @@ local function world_insert(
         local entry = args[i]
         local next_val = args[i + 1]
 
-        -- case 1: component metadata (has .id and .default)
-        if typeof(entry) == 'table' and entry.id and entry.default ~= nil then
-            world_assign(world, entity, entry.id, entry.default)
-            i += 1
-
-        -- case 2: direct component id followed by value or nil
-        elseif typeof(entry) == 'number'  then
+        if typeof(entry) == 'number'  then
             local entry: any = entry
             world_assign(world, entity, entry, next_val)
             i += 2
@@ -876,25 +833,23 @@ world.query = world_query
 world.query_once = world_query_once
 world.has = world_has
 world.insert = world_insert
-world.component = component
 
-type undecided_component<T, Prev, usage = id> =
-    component<T, usage> -- metadata table: { id, default }
+type undecided<T, Prev, usage = id> =
     | usage -- component id
     | Prev -- fallback value for previous componen
 
 type world_insert<world = world, usage = id> = <T, T1, T2, T3, T4, T5, T6, T7, T8>(
     world: world,
     entity: usage,
-    a: component<T, usage> | usage,
-    b: undecided_component<T1, T, usage>?,
-    c: undecided_component<T2, T1, usage>?,
-    d: undecided_component<T3, T2, usage>?,
-    e: undecided_component<T4, T3, usage>?,
-    f: undecided_component<T5, T4, usage>?,
-    g: undecided_component<T6, T5, usage>?,
-    h: undecided_component<T7, T6, usage>?,
-    i: undecided_component<T8, T7, usage>?,
+    a: usage,
+    b: undecided<T1, T, usage>?,
+    c: undecided<T2, T1, usage>?,
+    d: undecided<T3, T2, usage>?,
+    e: undecided<T4, T3, usage>?,
+    f: undecided<T5, T4, usage>?,
+    g: undecided<T6, T5, usage>?,
+    h: undecided<T7, T6, usage>?,
+    i: undecided<T8, T7, usage>?,
     j: T8?
 ) -> ()
 
@@ -910,8 +865,7 @@ type world_impl = {
     query: (self: world, ...id) -> (trait: trait) -> () -> (),
     query_once: (self: world, ...id) -> (trait: trait) -> (),
     has: (self: world, entity: id, component: id) -> boolean,
-    insert: world_insert,
-    component: <T>(world: world, default: T) -> () -> component<T>,
+    insert: world_insert
 }
 
 type world_ask<world = world> =
@@ -933,8 +887,7 @@ export type mock_world = world_fields<entity> & {
     query: (self: mock_world, ...entity) -> (trait: trait<entity>) -> () -> (),
     query_once: (self: mock_world, ...entity) -> (trait: trait<entity>) -> (),
     has: (self: mock_world, entity: entity, component: entity) -> boolean,
-    insert: world_insert<mock_world, entity>,
-    component: <T>(world: mock_world, default: T) -> () -> component<T, entity>,
+    insert: world_insert<mock_world, entity>
 }
 
 return world
