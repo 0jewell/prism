@@ -2,5 +2,9 @@
     "languageMode": "strict",
     "lint": {
         "FunctionUnused": false
+    },
+    "aliases": {
+        "prism": "src",
+        "tiniest": "tests/lib"
     }
 }

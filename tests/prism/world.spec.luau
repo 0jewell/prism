@@ -1,7 +1,7 @@
-local tiniest = require('../lib/tiniest_for_lune')
+local tiniest = require('@tiniest/tiniest_for_lune')
 type testing = typeof(tiniest.configure {})
 
-local prism = require('../../src/lib')
+local prism = require('@prism/')
 local world = prism.world
 
 return function(testing: testing)

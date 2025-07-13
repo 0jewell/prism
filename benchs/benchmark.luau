@@ -1,4 +1,4 @@
-local prism = require('../src/lib')
+local prism = require('@prism/')
 local world = prism.world
 
 local w = world.new()

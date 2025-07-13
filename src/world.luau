@@ -708,8 +708,10 @@ local function world_despawn(
     entity: id
 )
     local record = world.records[entity]
+
+    -- if the entity is dead, do nothing
     if record == nil then
-        error(`entity {entity} does not exist`)
+        return
     end
 
     local archetype = record.archetype
@@ -881,7 +883,7 @@ type undecided_component<T, Prev, usage = id> =
     | usage -- component id
     | Prev -- fallback value for previous componen
 
-type world_insert<world = world, usage = id> = <T, T1, T2, T3, T4, T5>(
+type world_insert<world = world, usage = id> = <T, T1, T2, T3, T4, T5, T6, T7, T8>(
     world: world,
     entity: usage,
     a: component<T, usage> | usage,
@@ -890,7 +892,10 @@ type world_insert<world = world, usage = id> = <T, T1, T2, T3, T4, T5>(
     d: undecided_component<T3, T2, usage>?,
     e: undecided_component<T4, T3, usage>?,
     f: undecided_component<T5, T4, usage>?,
-    g: T5?
+    g: undecided_component<T6, T5, usage>?,
+    h: undecided_component<T7, T6, usage>?,
+    i: undecided_component<T8, T7, usage>?,
+    j: T8?
 ) -> ()
 
 type world_impl = {

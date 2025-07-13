@@ -14,7 +14,7 @@ For use outside of Roblox, it contains the following structure:
 
 ```luau title="Prism.luau"
 return {
-    world = require('./world'),
-    debugger = require('./debugger')
+    world = require('@self/world'),
+    debugger = require('@self/debugger')
 }
 ```
