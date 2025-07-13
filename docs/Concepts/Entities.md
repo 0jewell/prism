@@ -1,11 +1,11 @@
 # Entities and components
 
 Entities are unique identifiers that act as containers for components, defining their data and state.
-Entities do not store logic or behavior directly; instead, [Traits](Traits.md) (systems) operate on entities based on their assigned components.
+Entities do not store logic or behavior directly; instead, [traits](Traits.md) (systems) operate on entities based on their assigned components.
 
 ### 
 
-```lua linenums="1"
+```luau linenums="1"
 local entity = world:spawn()
 ```
 
