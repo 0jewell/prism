@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 --------------------------------------------------------------------------------
 
+[Unreleased]
+
+### Removed
+- Removed `world:component`
+- Removed `prism.component<T>` type
+
+## 0.2.1
+
+### Changes
+- Updated string requires to new aliases
+- Merged `lib.luau` in `init.luau`
+
 ## 0.2.0
 
 ### Added
