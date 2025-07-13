@@ -4,5 +4,5 @@
 
 In your `wally.toml`, add the following line to your dependencies.
 ```sh
-prism = "0jewell/prism@0.2.0"
+prism = "0jewell/prism@0.2.1"
 ```
