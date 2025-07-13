@@ -1,11 +1,11 @@
-local colors = require('@self/colors')
+local colors = require('./colors')
 local label = colors.label
 local value = colors.value
 local header = colors.header
 local error_text = colors.error_text
 local gray = colors.gray
 
-local world_module = require('./world')
+local world_module = require('../world')
 type mock_archetype = world_module.archetype
 type mock_record = world_module.record
 type mock_world = world_module.mock_world

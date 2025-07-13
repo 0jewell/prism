@@ -6,7 +6,7 @@ export type component<T> = world.component<T, entity>
 export type archetype = world.archetype<entity>
 export type record = world.record<entity>
 
-local debugger = require('@self/debug')
+local debugger = require('@self/debug/trace')
 export type stackframe = debugger.stackframe
 
 return {
