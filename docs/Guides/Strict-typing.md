@@ -2,8 +2,8 @@
 
 ### Type notations
 
-Programming without guidance can be difficult and frustrating. If you ofthen find yourself opening 2 Visual
-Studio Code tabs or perhaps constantly switching files on Studio, that's usually a sign that something is not quite right.
+Programming without guidance can be difficult and frustrating. If you often find yourself opening 2 Visual
+Studio Code tabs or perhaps constantly switching files on Studio to look at type definitions, that's usually a sign that something is not quite right.
 
 In Luau, it is possible to add **type annotations** to variables, return types and parameters.
 And when type annotations get too complex, the type inference simple won't work anymore, or it will default to `any`.
@@ -40,6 +40,8 @@ _t: {
     current: number
 }
 ```
+
+But in reality, it is a number.
 
 ### Getting component data
 
