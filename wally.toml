@@ -1,0 +1,11 @@
+[package]
+name = "0jewell/prism"
+description = "A ECS library based on reactive systems"
+license = "MIT"
+authors = ["0jewell"]
+version = "0.2.1"
+registry = "https://github.com/upliftgames/wally-index"
+realm = "shared"
+
+exclude = ["**"]
+include = ["src", "src/*", "default.project.json", "wally.lock", "wally.toml"]

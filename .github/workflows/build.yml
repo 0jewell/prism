@@ -1,4 +1,4 @@
-name: release
+name: Build Release
 
 on:
   release:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pesde install
+          wally install
 
       - name: Build rbxm file
         run: |
