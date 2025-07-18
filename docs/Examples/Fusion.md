@@ -6,14 +6,14 @@ This example shows how to use fusion states in components data.
 
 Assuming the following code:
 
-```luau title="shared/world.luau" linenums="1"
+```luau title="shared/world.luau"
 local packages = game.ReplicatedStorage.packages
 local prism = require(packages.prism)
 
 return prism.world.new()
 ```
 
-```luau title="shared/components.luau" linenums="1"
+```luau title="shared/components.luau"
 local packages = game.ReplicatedStorage.packages
 local shared = game.ReplicatedStorage.shared
 
@@ -35,7 +35,7 @@ return {
 
 And then on your system:
 
-```luau linenums="1"
+```luau
 local packages = game.ReplicatedStorage.packages
 local shared = game.ReplicatedStorage.shared
 

@@ -8,7 +8,7 @@ Studio Code tabs or perhaps constantly switching files on Studio to look at type
 In Luau, it is possible to add **type annotations** to variables, return types and parameters.
 And when type annotations get too complex, the type inference simple won't work anymore, or it will default to `any`.
 
-```luau linenums="1"
+```luau
 local var: number = 10
 
 local function func(): number
@@ -21,7 +21,7 @@ end
 Components are just numbers, aren't they? Well, that's technically correct. But the type checker does not need to know that.
 In other words, you can simulate the component's type by **annotating it as a table**, with a fake field holding its type.
 
-```luau linenums="1" hl_lines="8"
+```luau hl_lines="8"
 local world = require(path.to.world)
 type entity<T> = world.entity<T>
 
@@ -47,7 +47,7 @@ But in reality, it is a number.
 
 You can get full type check support when asking for data using a typed component:
 
-```luau linenums="8" hl_lines="8"
+```luau hl_lines="8"
 local entity = world:spawn()
 
 world:assign(entity, health, {

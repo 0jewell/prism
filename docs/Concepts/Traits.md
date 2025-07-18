@@ -8,7 +8,7 @@ They act as systems that process and modify entity states dynamically.
 A **Trait is not a loop** or a frame-based system.  
 It runs **exactly once** when an entity **first matches** the component requirements specified in the query.
 
-```lua linenums="1" hl_lines="11"
+```lua hl_lines="11"
 local entity = world:spawn()
 local health = world:spawn()
 
@@ -41,7 +41,7 @@ world:insert(entity, health, { value = 50 }) --> this is the 2 time
 When writing traits that create or manage instances or resources,
 it's important to manually add them to the cleaning scope.
 
-```lua linenums="1" hl_lines="7"
+```lua hl_lines="7"
 local components = require(path.to.components)
 local part = components.part
 

@@ -1,17 +1,17 @@
 # Using Prism with CollectionService
 
-Roblox's `CollectionService` lets you tag instances in the explorer, making it possible to have references to
+Roblox's `CollectionService` lets you tag instances in the Explorer, making it possible to reference
 those instances in your code.
 
-This is useful when you are working with objects already placed in the scene, such as doors, trees, or anything else you may use on your map.
+This is useful when you are working with objects that are already placed in the scene, such as doors, trees, or anything else you may use on your map.
 
 ### What this does?
 - You can create entities for those static objects
-- You can add functionality through Prism to them
+- You can add functionality to them using Prism
 
 ### Example code
 
-```luau title='shared/tag.luau' linenums='1'
+```luau title='shared/tag.luau'
 local CollectionService = game:GetService('CollectionService')
 
 local components = require(shared.components)
@@ -67,7 +67,7 @@ return load_collection
 
 ### Usage
 
-```luau linenums="1"
+```luau
 local tag = require(shared.tag)
 local killpart = tag('Killpart')
 

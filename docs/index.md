@@ -1,3 +1,8 @@
+---
+    hide:
+        - navigation
+---
+
 # Home
 
 ![Prism Logo](assets/home/logo-light-theme.svg#only-light)

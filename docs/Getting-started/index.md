@@ -60,7 +60,7 @@ return nil
 
 Now, create an entity with some initial energy and the `alive` component
 
-```luau linenums="1"
+```luau
 local player = world:spawn()
 
 world:insert(player,
