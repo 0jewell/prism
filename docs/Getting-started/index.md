@@ -11,7 +11,7 @@ local world = prism.world.new()
 return world
 ```
 
-### Create your components
+## Create your components
 
 Next, define your components module
 
@@ -27,7 +27,7 @@ return {
 !!! tip Types
      Check [this guide](../Guides/Strict-typing.md) to type your components data
 
-### Add a trait to the world
+## Add a trait to the world
 
 Then, define a behavior to your entities
 
@@ -56,7 +56,7 @@ end)
 return nil
 ```
 
-### Create an entity
+## Create an entity
 
 Now, create an entity with some initial energy and the `alive` component
 
@@ -69,7 +69,7 @@ world:insert(player,
 )
 ```
 
-### Next steps
+## Next steps
 
 You can continue by:
 

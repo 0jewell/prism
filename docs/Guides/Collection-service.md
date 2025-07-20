@@ -5,11 +5,11 @@ those instances in your code.
 
 This is useful when you are working with objects that are already placed in the scene, such as doors, trees, or anything else you may use on your map.
 
-### What this does?
+## What this does?
 - You can create entities for those static objects
 - You can add functionality to them using Prism
 
-### Example code
+## Example code
 
 ```luau title='shared/tag.luau'
 local CollectionService = game:GetService('CollectionService')

@@ -1,6 +1,6 @@
 # Installing Prism
 
-### with Wally <small>recommended</small>
+## with Wally <small>recommended</small>
 
 In your `wally.toml`, add the following line to your dependencies.
 ```sh

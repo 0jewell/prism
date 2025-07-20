@@ -3,13 +3,11 @@
 Entities are unique identifiers that act as containers for components, defining their data and state.
 Entities do not store logic or behavior directly; instead, [traits](Traits.md) (systems) operate on entities based on their assigned components.
 
-### 
-
 ```luau
 local entity = world:spawn()
 ```
 
-### Components
+## Components
 
 To first understand components, you need to understand that: **components are also entities.**
 
@@ -35,7 +33,7 @@ world:assign(player, player, player)
 This works because the world treats the *second* parameter (`player`) as the **component label**,
 and the *third* as the **value** being associated. What matters is not what the entity "is," **but how it's used.**
 
-### Use cases
+## Use cases
 
 In general **component** is simple a information that is added to an entity.
 They can serve various purposes such as:

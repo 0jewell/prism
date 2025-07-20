@@ -3,7 +3,7 @@
 Traits define the behavior of entities by operating on entities that contain specific components.
 They act as systems that process and modify entity states dynamically.
 
-### Understading them
+## Understading them
 
 A **Trait is not a loop** or a frame-based system.  
 It runs **exactly once** when an entity **first matches** the component requirements specified in the query.
@@ -36,7 +36,7 @@ world:remove(entity, health)
 world:insert(entity, health, { value = 50 }) --> this is the 2 time
 ```
 
-### Trait Cleanup
+## Trait Cleanup
 
 When writing traits that create or manage instances or resources,
 it's important to manually add them to the cleaning scope.

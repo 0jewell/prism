@@ -2,7 +2,7 @@
 
 This example shows how to use fusion states in components data.
 
-### Overview
+## Overview
 
 Assuming the following code:
 
