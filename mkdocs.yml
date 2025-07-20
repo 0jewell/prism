@@ -25,15 +25,18 @@ theme:
         name: Switch to Dark theme
 
   features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.instant.prefetch
+    - navigation.instant.preview
     - navigation.tabs
     - navigation.top
     - navigation.tracking
     - navigation.sections
-    - navigation.instant
-    - navigation.instant.progress
     - navigation.indexes
     - navigation.footer
     - navigation.expand
+    - navigation.prune
 
     - search.suggest
     - search.highlight
@@ -50,15 +53,32 @@ theme:
     code: Overpass Mono
 
 markdown_extensions:
+  - abbr
+  - attr_list
   - admonition
+  - footnotes
+
   - toc:
       title: On this page
+
+  - pymdownx.betterem
+  - pymdownx.details
+  - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.highlight:
+      use_pygments: true
+      linenums: true
+      anchor_linenums: true
+  - pymdownx.inlinehilite
 
 extra_css:
   - assets/themes/colors.css
   - assets/themes/page.css
   - assets/themes/paragraph.css
+
+plugins:
+  - search
+  - tags
 
 extra:
   consent:
@@ -77,13 +97,19 @@ copyright: Copyright &copy; 2025 0jewell
 
 nav:
   - Home: index.md
+  - Getting Started: Getting-started/index.md
   - Tutorials:
     - Installing: Tutorials/Installing.md
     - Importing: Tutorials/Importing.md
+    - Why ECS: Tutorials/Why-ECS.md
 
     - Concepts:
       - Entities: Concepts/Entities.md
       - Traits: Concepts/Traits.md
+
+    - Guides:
+      - Strict typing: Guides/Strict-typing.md
+      - CollectionService: Guides/Collection-service.md
 
   - Examples:
     - Using Fusion: Examples/Fusion.md

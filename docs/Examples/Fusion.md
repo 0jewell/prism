@@ -1,62 +1,68 @@
 # Using Fusion with Prism
 
-This example shows how to use Fusion states in pieces data.
+This example shows how to use fusion states in components data.
 
-### Overview
+## Overview
 
-```lua
-local Packages = game.ReplicatedStorage.Packages
+Assuming the following code:
 
-local Fusion = require(Packages.Fusion)
-local peek = Fusion.peek
-local scoped = Fusion.scoped
-type Value<T> = Fusion.Value<T>
+```luau title="shared/world.luau"
+local packages = game.ReplicatedStorage.packages
+local prism = require(packages.prism)
 
-local Prism = require(Packages.Prism)
-local from = Prism.from
-type Piece<D> = Prism.Piece<D>
+return prism.world.new()
+```
 
-local function Valuing(data)
-    local scope = scoped()
-    return from(Fusion.Value, scope, data)
-end
+```luau title="shared/components.luau"
+local packages = game.ReplicatedStorage.packages
+local shared = game.ReplicatedStorage.shared
 
-type healthData = Piece<{ 
-    max: number,
-    current: Value<number>
-}>
-local health: healthData = Prism.Piece {
-    max = 100,
-    current = Valuing(100)
+local fusion = require(packages.fusion)
+type value<T> = fusion.value<T>
+
+local prism = require(packages.prism)
+type entity<T> = prism.entity<T>
+
+local world = require(shared.world)
+
+return {
+    health = world:spawn() :: entity<{
+       max: number,
+        current: value<number>
+    }>
 }
+```
 
-local HealthBar = Instance.new('Frame')
-local BloodVignette = Instance.new('Frame')
+And then on your system:
 
-return Prism.Query { query = function() return health end }
+```luau
+local packages = game.ReplicatedStorage.packages
+local shared = game.ReplicatedStorage.shared
 
-:trait('UpdateHealthBar & ScreenState', function(data, health)
-    local current = health.data.current
-    local max = health.data.max
+local fusion = require(packages.fusion)
+local peek = fusion.peek
+local hydrate = fusion.Hydrate
+local computed = fusion.Computed
 
-    local scope = Fusion:innerScope(data.cleaning)
+local world = require(shared.world)
+local components = require(shared.components)
+
+local health_bar = Instance.new('Frame')
+local blood_vignette = Instance.new('Frame')
+
+world:query(client, health) (function(entity, scope)
+    local health = world:ask(entity, health)
+    local current = health.current
+    local max = health.max
+
+    local scope = fusion.inner(scope)
     
-    scope:Hydrate(HealthBar) {
-        Size = scope:Computed(function(use)
+    hydrate(scope, health_bar) {
+        Size = computed(function(use)
             local percent = use(current) / max
 
             return UDim2.fromScale(percent, 1)
         end)
     }
-
-    scope:Observer(current):onChange(function()
-        local newValue = peek(current)
-
-        if newValue <= 50 then
-            BloodVignette.Visible = true
-        else
-            BloodVignette.Visible = false
-        end
-    end)
 end)
 ``` 

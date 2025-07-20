@@ -1,48 +1,47 @@
 # Traits
 
-Traits define the behavior of entities by operating on entities that contain specific Pieces.
+Traits define the behavior of entities by operating on entities that contain specific components.
 They act as systems that process and modify entity states dynamically.
 
-### Understading them
+## Understading them
 
-A Trait is executed whenever an entity matches the required components specified in a query.
+A **Trait is not a loop** or a frame-based system.  
+It runs **exactly once** when an entity **first matches** the component requirements specified in the query.
 
-```lua
+```lua hl_lines="11"
 local entity = world:spawn()
 local health = world:spawn()
 
-world:insert(entity, health, 100)
-
-local counter = 1
+local counter = 0
 
 world:query(health) (function(entity, scope)
     print('This is the', counter, 'time')
     counter += 1
 end)
---> this is the 1 time
+
+world:insert(entity, health, 100) --> this is the 1 time
 ```
 
-!!! note 
-    When a query is created in runtime, every entity that matches it
-    will be applied. This mean you can can insert components before actually
-    creating any systems
+!!! note "Reactive, not continuous"
+    Traits are **reactive**. They **only execute once** per matching event.  
+    They do **not run every frame**, and they do **not loop** over entities continuously.  
+    Think of them as event-driven systems triggered by changes in the entity's state.
 
-If the entity no longer meets the requirements, the trait is removed.
-If it later meets the conditions again, the trait is reapplied.
+If the entity stops matching (e.g., a required component is removed), the trait is automatically **removed**.  
+If it later matches again, the trait is **re-applied**, and the function is executed **again once**.
 
-```lua
+```lua linenums="12" hl_lines="3"
 world:remove(entity, health)
 
-world:insert(entity, health, { value = 50 })
--- > This is the 2 time
+world:insert(entity, health, { value = 50 }) --> this is the 2 time
 ```
 
-### Trait Cleanup
+## Trait Cleanup
 
 When writing traits that create or manage instances or resources,
-it's important to manually clean them up when the trait no longer applies.
+it's important to manually add them to the cleaning scope.
 
-```lua
+```lua hl_lines="7"
 local components = require(path.to.components)
 local part = components.part
 
