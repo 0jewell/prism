@@ -358,6 +358,10 @@ local function archetype_query_transition(
     end
 
     for trait in traits do
+        if world.records[entity] == nil then
+            break
+        end
+
         local trait_consumed = consumed[trait]
 
         if trait_consumed == nil then
@@ -389,12 +393,7 @@ local function query_remove_trait(
     if not trait_consumed then
         return
     end
-
-    -- remove entity from this trait
-    trait_consumed[entity] = nil
-
     local entity_scopes = scopes[entity]
-
     if entity_scopes then
 
         -- cleanup entity's scope attached to this trait
@@ -403,6 +402,9 @@ local function query_remove_trait(
             entity_scopes[trait] = nil
         end
     end
+
+    -- remove entity from this trait
+    trait_consumed[entity] = nil
 end
 
 local function archetype_query_transition_cleanup(
@@ -726,15 +728,29 @@ local function world_delete(
     entity: id
 )
     local record = world.records[entity]
-    if record == nil then
-        error(`entity {entity} does not exist`)
+    if not record then
+        error('attempt to delete nonexistent entity:', entity)
     end
 
     local archetype = record.archetype
     local row = record.row
 
-    archetype_query_cleanup(world, entity, archetype)
-    archetype_swap_remove(world, row, archetype)
+    local scopes = world.scopes[entity]
+    if scopes then
+        for trait, scope in pairs(scopes) do
+            clean(scope)
+
+            local trait_consumed = world.consumed[trait]
+            if trait_consumed then
+                trait_consumed[entity] = nil
+            end
+        end
+        world.scopes[entity] = nil
+    end
+
+    if archetype then
+        archetype_swap_remove(world, row, archetype)
+    end
 
     world.records[entity] = nil
 end

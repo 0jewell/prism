@@ -121,5 +121,52 @@ return function(testing: testing)
                 w:assign(e, a, true)
             end).fails()
         end)
+
+        test('should not call trait after delete', function()
+            local w = world.new()
+            local A = w:spawn()
+            local e = w:spawn()
+
+            w:insert(e, A, { val = 10 })
+
+            local count = 0
+            w:query(A) (function(entity)
+                count += 1
+            end)
+            expect(count).is(1)
+
+            w:delete(e)
+
+            count = 0
+            w:query(A) (function(entity)
+                count += 1
+            end)
+            expect(count).is(0)
+        end)
+
+        test('should stop trait execution if entity is deleted mid-trait-chain', function()
+            local w = world.new()
+            local a = w:spawn()
+            local e = w:spawn()
+
+            w:insert(e, a, { val = 1 })
+
+            local calls = {}
+
+            w:query(a) (function(entity)
+                table.insert(calls, 'a')
+                w:delete(entity)
+            end)
+
+            w:query(a)(function(entity)
+                table.insert(calls, 'b')
+            end)
+
+            w:query(a)(function(entity)
+                table.insert(calls, 'c')
+            end)
+
+            expect(calls[2]).never_exists()
+        end)
     end)
 end
