@@ -667,22 +667,26 @@ end
 local function world_has(
     world: world,
     entity: id,
-    component: id
+    component: id?
 )
     local record = world.records[entity]
 
     if record == nil then
         return false
     end
+    
+    if component then
+        local archetype = record.archetype
+        local archetype_set = world.component_index[component]
 
-    local archetype = record.archetype
-    local archetype_set = world.component_index[component]
+        if archetype_set == nil then
+            return false
+        end
 
-    if archetype_set == nil then
-        return false
+        return archetype_set[archetype.hash] ~= nil
     end
-
-    return archetype_set[archetype.hash] ~= nil
+    
+    return true
 end
 
 local function world_spawn(world: world)
@@ -880,7 +884,7 @@ type world_impl = {
     delete: (self: world, entity: id) -> (),
     query: (self: world, ...id) -> (trait: trait) -> () -> (),
     query_once: (self: world, ...id) -> (trait: trait) -> (),
-    has: (self: world, entity: id, component: id) -> boolean,
+    has: (self: world, entity: id, component: id?) -> boolean,
     insert: world_insert
 }
 
@@ -902,7 +906,7 @@ export type mock_world = world_fields<entity> & {
     delete: (self: mock_world, entity: entity) -> (),
     query: (self: mock_world, ...entity) -> (trait: trait<entity>) -> () -> (),
     query_once: (self: mock_world, ...entity) -> (trait: trait<entity>) -> (),
-    has: (self: mock_world, entity: entity, component: entity) -> boolean,
+    has: (self: mock_world, entity: entity, component: entity?) -> boolean,
     insert: world_insert<mock_world, entity>
 }
 
