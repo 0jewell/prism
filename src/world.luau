@@ -14,7 +14,7 @@ type id = number
 export type entity<T = any> = { __t: T }
 
 -- function applied to entities matching a query
-export type trait<usage = id> = (id: usage, scope: scope) -> ()
+export type trait<usage = id> = (id: usage, clean: (...unknown) -> ()) -> ()
 
 -- stores data for a single component across all entities in an archetype
 type column = { any }
@@ -51,7 +51,7 @@ type world_fields<usage = id> = {
 
 type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
 
-local insert, remove = table.insert, table.remove
+local insert, remove, sort = table.insert, table.remove, table.sort
 
 -- this
 local world = {}
@@ -376,9 +376,18 @@ local function archetype_query_transition(
 
         local scope = {}
         entity_scopes[trait] = scope
-
+    
+        -- mark trait as consumed
         trait_consumed[entity] = true
-        trait(entity, scope)
+
+        local function clean(...: unknown)
+            for i = 1, select('#', ...) do
+                local arg = select(i, ...)
+                insert(scope, arg)
+            end
+        end
+
+        trait(entity, clean)
     end
 end
 
@@ -485,7 +494,7 @@ local function world_query(
     ...: id
 )
     local track = { ... }
-    table.sort(track)
+    sort(track)
 
     local archetype = ensure_archetype(world, track)
 
@@ -508,7 +517,7 @@ local function world_query_once(
     ...: id
 )
     local track = { ... }
-    table.sort(track)
+    sort(track)
 
     return function(trait: trait)
         local archetype = ensure_archetype(world, track)

@@ -85,7 +85,7 @@ return function(testing: testing)
             w:insert(e, b, { val = 2 })
 
             local call_count = 0
-            local function trait(entity, scope)
+            local function trait()
                 call_count += 1
             end
 

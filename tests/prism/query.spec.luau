@@ -24,7 +24,7 @@ return function(testing: testing)
             w:assign(e2, a, { val = 30 })
 
             local calls = {}
-            local function trait(entity, scope)
+            local function trait(entity)
                 calls[entity] = (calls[entity] or 0) + 1
             end
 
