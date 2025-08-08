@@ -34,11 +34,10 @@ Then, define a behavior to your entities
 ```luau title="systems/energy.luau"
 local world = require(shared.world)
 
-local ct = require(shared.components)
-local alive, energy = ct.alive, ct.energy
+local components = require(shared.components)
+local alive, energy = components.alive, components.energy
 
-world:query(alive, energy) (function(entity, scope)
-
+world:query(alive, energy) (function(entity, clean)
     -- regenerate 1 energy every second
     local loop = task.spawn(function()
         while task.wait(1) do
@@ -47,10 +46,8 @@ world:query(alive, energy) (function(entity, scope)
         end
     end)
     
-    -- cleanup coroutine
-    table.insert(scope, function()
-        task.cancel(loop)
-    end)
+    -- cleanup coroutine on remove
+    clean(function() task.cancel(loop) end)
 end)
 
 return nil

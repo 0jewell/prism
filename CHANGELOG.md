@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Removed `world:component`
 - Removed `prism.component<T>` type
 
+### Changes
+
+- Changed trait scope argument to be a insert function instead
+
 ## 0.2.1
 
 ### Changes
