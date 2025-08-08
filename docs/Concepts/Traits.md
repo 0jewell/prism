@@ -14,7 +14,7 @@ local health = world:spawn()
 
 local counter = 0
 
-world:query(health) (function(entity, scope)
+world:query(health) (function(entity)
     print('This is the', counter, 'time')
     counter += 1
 end)
@@ -46,9 +46,9 @@ local components = require(path.to.components)
 local part = components.part
 
 return function(world)
-    world:query(part) (function(entity, scope)
-        local instance = Instance.new('Part')
-        table.insert(scope, instance)
+    world:query(part) (function(entity, clean)
+        local instance = Instance.new('Part', workspace)
+        clean(instance)
 
         world:assign(entity, part, instance)
     end)
