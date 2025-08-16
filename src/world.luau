@@ -459,19 +459,15 @@ local function archetype_query_cleanup(
     end
 end
 
-local function archetype_propagate_remove(
-    world: world,
-    archetype: archetype,
-    trait: trait
+local function snapshot_entities(
+    archetype: archetype
 )
-    for _, id in pairs(archetype.entities) do
-        archetype_query_cleanup(world, id, archetype, trait)
+    local src = archetype.entities
+    local out = {}
+    for i = 1, #src do
+        out[i] = src[i]
     end
-
-    for super_archetype in pairs(archetype.supers) do
-        super_archetype.traits[trait] = nil
-        archetype_propagate_remove(world, super_archetype, trait)
-    end
+    return out
 end
 
 local function archetype_propagate_trait(
@@ -479,13 +475,42 @@ local function archetype_propagate_trait(
     archetype: archetype,
     trait: trait
 )
-    for _, id in pairs(archetype.entities) do
+    -- iterate over a snapshot so mutations (swap/remove) dont break the loop
+    local entities_snapshot = snapshot_entities(archetype)
+    for _, id in ipairs(entities_snapshot) do
         archetype_query_transition(world, id, archetype, trait)
     end
 
-    for super_archetype in pairs(archetype.supers) do
+    -- snapshot supers to avoid issues if the supers table mutates
+    local supers_snapshot = {}
+    for super in pairs(archetype.supers) do
+        supers_snapshot[#supers_snapshot + 1] = super
+    end
+
+    for _, super_archetype in ipairs(supers_snapshot) do
         super_archetype.traits[trait] = true
         archetype_propagate_trait(world, super_archetype, trait)
+    end
+end
+
+local function archetype_propagate_remove(
+    world: world,
+    archetype: archetype,
+    trait: trait
+)
+    local entities_snapshot = snapshot_entities(archetype)
+    for _, id in ipairs(entities_snapshot) do
+        archetype_query_cleanup(world, id, archetype, trait)
+    end
+
+    local supers_snapshot = {}
+    for super in pairs(archetype.supers) do
+        supers_snapshot[#supers_snapshot + 1] = super
+    end
+
+    for _, super_archetype in ipairs(supers_snapshot) do
+        super_archetype.traits[trait] = nil
+        archetype_propagate_remove(world, super_archetype, trait)
     end
 end
 
@@ -666,10 +691,10 @@ local function world_remove(
     if old_archetype.columns_map[component] then
         local new_archetype = archetype_transition_remove(world, component, old_archetype)
 
-        archetype_entity_move(world, new_archetype, entity, record)
-
-        -- calling traits after data is removed
         archetype_track_queries(world, entity, old_archetype, new_archetype)
+
+        -- move entity only after cleaning old trait scopes
+        archetype_entity_move(world, new_archetype, entity, record)
     end
 end
 
