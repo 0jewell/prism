@@ -5,10 +5,6 @@ export type entity<T = any> = world.entity<T>
 export type archetype = world.archetype<entity>
 export type record = world.record<entity>
 
-local debugger = require('@self/debug/trace')
-export type stackframe = debugger.stackframe
-
 return {
-    world = world,
-    debugger = debugger
+    world = world
 }

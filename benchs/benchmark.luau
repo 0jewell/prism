@@ -19,19 +19,23 @@ local function benchmark()
 ╚════════════════════════════════════════════╝
 ]] .. reset)
 
-    local query_count = 100
+    local query_count = 10
     local entity_count = 10_000
 
     local c1, c2 = w:spawn(), w:spawn()
     local c3, c4 = w:spawn(), w:spawn()
     local c5, c6 = w:spawn(), w:spawn()
     local c7, c8 = w:spawn(), w:spawn()
+    local c9 = w:spawn()
 
     local all_components = { c1, c2, c3, c4, c5, c6, c7, c8 }
     local components_per_entity = #all_components
 
     for _ = 1, query_count do
-        w:query(c1, c2, c3, c4, c5, c6, c7, c8)(function() end)
+        w:query(c1, c2, c3, c4, c5, c6, c7, c8)(function(entity)
+            w:assign(entity, c9)
+        end)
+        w:query(c9) (function() end)
     end
 
     print(gray .. '• inserting entities and components...' .. reset)
