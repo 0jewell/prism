@@ -12,6 +12,10 @@ type insert_operation = command_operation<{
     data: any?
 }>
 
+type remove_operation = command_operation<{
+    component: id
+}>
+
 -- functions
 local function ensure_record(world: world, entity: id): record
     local records = world.records
@@ -135,7 +139,7 @@ local function world_new(): mock_world
             local column = old_archetype.columns_map[component]
 
             column[old_row] = data
-            return false
+            return
         end
 
         if old_archetype then
@@ -149,8 +153,6 @@ local function world_new(): mock_world
 
         -- calling traits after data is set
         inner_track_queries(entity, old_archetype, new_archetype)
-
-        return true
     end
 
     function world.insert<T>(entity: id, component: id, data: T?): ()
@@ -165,11 +167,40 @@ local function world_new(): mock_world
         buffer_command(insert_operation)
     end
 
+    local function execute_remove(operation: remove_operation): ()
+        local entity, component = operation.entity, operation.component
+        local record = safe_record(entity)
+
+        local old_archetype = record.archetype
+        if not old_archetype then return end
+
+        -- entity may not have this component
+        local has_component = old_archetype.columns_map[component]
+        if has_component then
+            local new_archetype = archetype.transition_remove(world, component, old_archetype)
+
+            archetype.move_entity(world, new_archetype, entity, record)
+            inner_track_queries(entity, old_archetype, new_archetype)
+        end
+    end
+
+    function world.remove(entity: id, component: id): ()
+        local remove_operation = {
+            name = 'prism:remove',
+            entity = entity,
+            component = component,
+            call = execute_remove
+        }
+
+
+        buffer_command(remove_operation)
+    end
+
     local function field(
         component: id,
         columns_map: { [id]: column },
         row: number
-    )
+    ): unknown
         local column = columns_map[component]
 
         if column == nil then
@@ -179,7 +210,7 @@ local function world_new(): mock_world
         return column[row]
     end
 
-    function world.get(entity: id, ...: id)
+    function world.get(entity: id, ...: id): ...unknown
         local record = safe_record(entity)
         local archetype = record.archetype
 
