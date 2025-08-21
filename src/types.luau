@@ -31,9 +31,10 @@ export type record<usage = id> = {
     row: number, -- row index in the archetype's columns
 }
 
-export type command_operation<usage = id> = {
+export type command_operation<content = any, usage = id> = content & {
+    name: string,
     entity: usage,
-    name: string
+    call: (operation: command_operation<content, usage>) -> ()
 }
 
 type world_fields<usage = id> = {
@@ -43,9 +44,9 @@ type world_fields<usage = id> = {
     consumed: { [trait<usage>]: set<usage> }, -- tracks which traits were already called to which entity
     scopes: { [usage]: { [trait<usage>]: scope } }, -- per-entity scope storage used during trait execution
     indexes: { [usage]: set<string> }, -- map to component -> { hash },
-    commands: {},
-    to_despawn: {},
-    deferred: {}
+    commands: { [usage]: { command_operation } },
+    to_despawn: set<usage>,
+    deferred: set<usage>
 }
 
 export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
@@ -55,7 +56,7 @@ type world_impl = {
     new: () -> world,
     insert: <T>(entity: id, component: id, data: T?) -> (),
     remove: (entity: id, component: id) -> (),
-    ask: (entity: id, ...id) -> ...any,
+    get: (entity: id, ...id) -> ...any,
     spawn: () -> id,
     despawn: (entity: id) -> (),
     delete: (entity: id) -> (),
@@ -63,7 +64,7 @@ type world_impl = {
     has: (entity: id, component: id?) -> boolean,
 }
 
-type world_ask<world = world> =
+type world_get<world = world> =
 (<T>(id: entity, a: entity<T>) -> T?)
 & (<T, T1>(id: entity, a: entity<T>, b: entity<T1>) -> (T?, T1?))
 & (<T, T1, T2>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>) -> (T?, T1?, T2?))
@@ -75,7 +76,7 @@ export type mock_world = world_fields<entity> & {
     new: () -> mock_world,
     insert: <T>(entity: entity, component: entity<T>, data: T?) -> (),
     remove: (entity: entity, component: entity) -> (),
-    ask: world_ask<mock_world>,
+    get: world_get<mock_world>,
     spawn: () -> entity,
     despawn: (entity: entity) -> (),
     delete: (entity: entity) -> (),

@@ -165,7 +165,81 @@ local function world_new(): mock_world
         buffer_command(insert_operation)
     end
 
+    local function field(
+        component: id,
+        columns_map: { [id]: column },
+        row: number
+    )
+        local column = columns_map[component]
+
+        if column == nil then
+            return nil
+        end
+
+        return column[row]
+    end
+
+    function world.get(entity: id, ...: id)
+        local record = safe_record(entity)
+        local archetype = record.archetype
+
+        if archetype == nil then
+            return nil
+        end
+
+        local columns_map = archetype.columns_map
+        local row = record.row
+
+        local length = select('#', ...)
+        local a, b, c, d, e = ...
+
+        if length == 1 then
+            return field(a, columns_map, row)
+
+        elseif length == 2 then
+            return field(a, columns_map, row),
+                field(b, columns_map, row)
+
+        elseif length == 3 then
+            return field(a, columns_map, row),
+                field(b, columns_map, row),
+                field(c, columns_map, row)
+
+        elseif length == 4 then
+            return field(a, columns_map, row),
+                field(b, columns_map, row),
+                field(c, columns_map, row),
+                field(d, columns_map, row)
+
+        elseif length == 5 then
+            return field(a, columns_map, row),
+                field(b, columns_map, row),
+                field(c, columns_map, row),
+                field(d, columns_map, row),
+                field(e, columns_map, row)
+        else
+            local components = table.create(length, nil)
+            for i = 1, length do
+                local component = select(i, ...)
+                components[i] = field(component, columns_map, row)
+            end
+
+            return unpack(components, 1, length)
+        end
+    end
+
     return world :: any
 end
+
+type id = types.id
+type entity<T = any> = types.entity<T>
+type record = types.record
+type column = types.column
+
+type archetype = types.archetype
+type command_operation<T = any> = types.command_operation<T>
+
+type world = types.world
+type mock_world = types.mock_world
 
 return world_new
