@@ -37,13 +37,11 @@ return function(testing: testing)
         end)
 
         test('should rewrite existing component if already in archetype', function()
-            warn()
             local w = world()
             local hp = w.spawn()
             local e = w.spawn()
 
             w.insert(e, hp, 50)
-            warn('2 call')
             w.insert(e, hp, 100)
 
             local record = w.records[e]
@@ -94,15 +92,20 @@ return function(testing: testing)
             expect(w.records[e1].archetype.hash).is(w.records[e2].archetype.hash)
         end)
 
---[[
         test('should register archetype with correct subs using component index', function()
             local w = world()
-            local A = w.spawn()
-            local B = w.spawn()
-            local C = w.spawn()
+            local a = w.spawn()
+            local b = w.spawn()
+            local c = w.spawn()
 
-            w.query(A, B)(function() end)
-            w.query(A, B, C)(function() end)
+            local e =  w.spawn()
+            w.insert(e, b)
+            w.insert(e, c)
+            w.insert(e, a)
+
+            local e2 =  w.spawn()
+            w.insert(e2, b)
+            w.insert(e2, a)
 
             local abc = w.archetypes['1_2_3']
             local ab = w.archetypes['1_2']
@@ -112,31 +115,6 @@ return function(testing: testing)
 
             -- check inverse
             expect(ab.subs[abc]).never_exists()
-        end)
-
-        test('should correctly register subs regardless of component order', function()
-            local w = world()
-            local A = w.spawn()
-            local B = w.spawn()
-            local C = w.spawn()
-
-            -- Intentionally out of order
-            w.query(B, C, A)(function() end)
-            w.query(C, A, B)(function() end)
-            w.query(B, C)(function() end)
-
-            local cab = w.archetypes['3_1_2']
-            expect(cab).never_exists()
-
-            local bca = w.archetypes['1_2_3']
-            local bc = w.archetypes['2_3']
-
-            expect(bca).exists()
-            expect(bc).exists()
-            expect(bca.subs[bc]).exists()
-
-            -- reverse check
-            expect(bc.subs[bca]).never_exists()
         end)
 
         test('should remove a component and move entity to new archetype', function()
@@ -166,6 +144,54 @@ return function(testing: testing)
 
             expect(new_archetype.columns_map[A][new_record.row].val).is(1)
         end)
-        ]]
+
+        test('should preserve component values when moving between archetypes', function()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local e = w.spawn()
+
+            w.insert(e, a, { n = 123 })
+            local old_archetype = w.records[e].archetype
+
+            w.insert(e, b, { val = true })
+            local new_archetype = w.records[e].archetype
+
+            expect(old_archetype).never_is(new_archetype)
+            expect((w.get(e, a) :: any).n).is(123)
+            expect((w.get(e, b) :: any).val).is(true)
+        end)
+
+        test('should update row indexes when entity moves between archetypes', function()
+            local w = world()
+            local A = w.spawn()
+            local B = w.spawn()
+
+            local e1 = w.spawn()
+            local e2 = w.spawn()
+
+            w.insert(e1, A, 10)
+            w.insert(e2, A, 20)
+
+            -- 1 in old archetype
+            local old_row = w.records[e1].row
+            w.insert(e1, B, 30)
+
+            -- 1 in new archetype
+            local new_row = w.records[e1].row
+            expect(new_row).is(old_row)
+        end)
+
+        test('should move entity back to root archetype when all components are removed', function()
+            local w = world()
+            local A = w.spawn()
+            local e = w.spawn()
+
+            w.insert(e, A, { foo = 'bar' })
+            expect(w.records[e].archetype.hash).never_is('')
+
+            w.remove(e, A)
+            expect(w.records[e].archetype.hash).is('')
+        end)
     end)
 end
