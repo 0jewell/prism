@@ -193,5 +193,20 @@ return function(testing: testing)
             w.remove(e, A)
             expect(w.records[e].archetype.hash).is('')
         end)
+
+        test('should remove entity record and free archetype slot', function()
+            local w = world()
+            local A = w.spawn()
+            local e = w.spawn()
+
+            w.insert(e, A, 123)
+            local archetype = w.records[e].archetype
+            expect(#archetype.entities).is(1)
+
+            w.despawn(e)
+
+            expect(w.records[e]).is(nil)
+            expect(#archetype.entities).is(0)
+        end)
     end)
 end
