@@ -3,6 +3,7 @@
 --!strict
 
 -- modules
+local clean = require('./clean')
 local archetype = require('./archetype')
 local types = require('./types')
 
@@ -12,9 +13,8 @@ type insert_operation = command_operation<{
     data: any?
 }>
 
-type remove_operation = command_operation<{
-    component: id
-}>
+type remove_operation = command_operation<{ component: id }>
+type despawn_operation = command_operation
 
 -- functions
 local function ensure_record(world: world, entity: id): record
@@ -126,6 +126,43 @@ local function world_new(): mock_world
         return next_id
     end
 
+    local function execute_despawn(operation: despawn_operation)
+        local entity = operation.entity
+        local record = safe_record(entity)
+
+        local entity_archetype = record.archetype
+        local row = record.row
+
+        local scopes = world.scopes[entity]
+        if scopes then
+            for trait, scope in pairs(scopes) do
+                clean(scope)
+
+                local trait_consumed = world.consumed[trait]
+                if trait_consumed then
+                    trait_consumed[entity] = nil
+                end
+            end
+            world.scopes[entity] = nil
+        end
+
+        if entity_archetype then
+            archetype.swap_remove(world, row, entity_archetype)
+        end
+
+        world.records[entity] = nil
+    end
+
+    function world.despawn(entity: id): ()
+        local despawn_operation = {
+            name = 'prism:despawn',
+            entity = entity,
+            call = execute_despawn
+        }
+
+        buffer_command(despawn_operation)
+    end
+
     local function execute_insert<T>(operation: insert_operation): ()
         local entity, component, data = operation.entity, operation.component, operation.data
         local record = safe_record(entity)
@@ -191,7 +228,6 @@ local function world_new(): mock_world
             component = component,
             call = execute_remove
         }
-
 
         buffer_command(remove_operation)
     end
