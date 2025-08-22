@@ -13,6 +13,7 @@ local tests = Tiniest.collect_tests(function()
 
     describeFromFile('prism/archetype')
     describeFromFile('prism/world')
+    describeFromFile('prism/query')
 end)
 
 local results = Tiniest.run_tests(tests, {})
