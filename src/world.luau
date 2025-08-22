@@ -373,6 +373,28 @@ local function world_new(): mock_world
             end
         end
     end
+
+    function world.has(entity: id, component: id?): boolean
+        local record = world.records[entity]
+
+        if record == nil then
+            return false
+        end
+        
+        if component then
+            local archetype = record.archetype
+            local archetype_set = world.indexes[component]
+
+            if archetype_set == nil then
+                return false
+            end
+
+            return archetype_set[archetype.hash] ~= nil
+        end
+        
+        return true
+    end
+
     return world :: any
 end
 
