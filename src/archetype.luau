@@ -325,16 +325,11 @@ local function archetype_transition_query_cleanup(
     world: world,
     entity: id,
     old_archetype: archetype,
-    new_archetype: archetype,
-    single_trait: trait?
+    new_archetype: archetype
 )
     local scopes = world.scopes
     local consumed = world.consumed
     local traits = old_archetype.traits
-
-    if single_trait then
-        traits = { [single_trait] = true }
-    end
 
     for trait in traits do
         if new_archetype.traits[trait] then
@@ -358,82 +353,6 @@ local function archetype_track_queries(
 
     -- enable queries for the new archetype
     archetype_transition_query(world, entity, new_archetype)
-end
-
-local function archetype_query_cleanup(
-    world: world,
-    entity: id,
-    archetype: archetype,
-    single_trait: trait?
-)
-    local scopes = world.scopes
-    local consumed = world.consumed
-    local traits = archetype.traits
-
-    if single_trait then
-        traits = { [single_trait] = true }
-    end
-
-    for trait in traits do
-        query_remove_trait(consumed, scopes, entity, trait)
-    end
-end
-
-local function snapshot_entities(
-    archetype: archetype
-)
-    local src = archetype.entities
-    local out = {}
-
-    for i = 1, #src do
-        out[i] = src[i]
-    end
-
-    return out
-end
-
-local function archetype_propagate_trait(
-    world: world,
-    archetype: archetype,
-    trait: trait
-)
-    -- iterate over a snapshot so mutations (swap/remove) dont break the loop
-    local entities_snapshot = snapshot_entities(archetype)
-    for _, id in ipairs(entities_snapshot) do
-        archetype_transition_query(world, id, archetype, trait)
-    end
-
-    -- snapshot supers to avoid issues if the supers table mutates
-    local supers_snapshot = {}
-    for super in pairs(archetype.supers) do
-        supers_snapshot[#supers_snapshot + 1] = super
-    end
-
-    for _, super_archetype in ipairs(supers_snapshot) do
-        super_archetype.traits[trait] = true
-        archetype_propagate_trait(world, super_archetype, trait)
-    end
-end
-
-local function archetype_propagate_remove(
-    world: world,
-    archetype: archetype,
-    trait: trait
-)
-    local entities_snapshot = snapshot_entities(archetype)
-    for _, id in ipairs(entities_snapshot) do
-        archetype_query_cleanup(world, id, archetype, trait)
-    end
-
-    local supers_snapshot = {}
-    for super in pairs(archetype.supers) do
-        supers_snapshot[#supers_snapshot + 1] = super
-    end
-
-    for _, super_archetype in ipairs(supers_snapshot) do
-        super_archetype.traits[trait] = nil
-        archetype_propagate_remove(world, super_archetype, trait)
-    end
 end
 
 local function archetype_swap_remove(
@@ -518,7 +437,6 @@ return {
     transition_query = archetype_transition_query,
     transition_query_cleanup = archetype_transition_query_cleanup,
 
-    -- propagation
-    propagate_trait = archetype_propagate_trait,
-    propagate_remove = archetype_propagate_remove
+    -- trait
+    query_remove_trait = query_remove_trait
 }

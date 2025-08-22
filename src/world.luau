@@ -295,6 +295,84 @@ local function world_new(): mock_world
         end
     end
 
+    local function snapshot_entities(
+        archetype: archetype
+    )
+        local src = archetype.entities
+        local out = {}
+
+        for i = 1, #src do
+            out[i] = src[i]
+        end
+
+        return out
+    end
+
+    local function propagate_trait(
+        trait_archetype: archetype,
+        trait: trait
+    )
+        -- iterate over a snapshot so mutations (swap/remove) dont break the loop
+        local entities_snapshot = snapshot_entities(trait_archetype)
+        for _, entity in ipairs(entities_snapshot) do
+            start_deferring(entity)
+            archetype.transition_query(world, entity, trait_archetype, trait)
+            flush_commands(entity)
+        end
+
+        -- snapshot supers to avoid issues if the supers table mutates
+        local supers_snapshot = {}
+        for super in pairs(trait_archetype.supers) do
+            supers_snapshot[#supers_snapshot + 1] = super
+        end
+
+        for _, super_archetype in ipairs(supers_snapshot) do
+            super_archetype.traits[trait] = true
+            propagate_trait(super_archetype, trait)
+        end
+    end
+
+    local function propagate_remove(
+        trait_archetype: archetype,
+        trait: trait
+    )
+        local consumed, scopes = world.consumed, world.scopes
+        local entities_snapshot = snapshot_entities(trait_archetype)
+
+        for _, entity in ipairs(entities_snapshot) do
+            archetype.query_remove_trait(consumed, scopes, entity, trait)
+        end
+
+        local supers_snapshot = {}
+        for super in pairs(trait_archetype.supers) do
+            supers_snapshot[#supers_snapshot + 1] = super
+        end
+
+        for _, super_archetype in ipairs(supers_snapshot) do
+            super_archetype.traits[trait] = nil
+            propagate_remove(super_archetype, trait)
+        end
+    end
+
+    function world.query(...: id): (trait: trait) -> () -> ()
+        local track = { ... }
+        table.sort(track)
+
+        local trait_archetype = archetype.ensure(world, track)
+
+        return function(trait: trait)
+            -- cache trait in the archetype state
+            trait_archetype.traits[trait] = true
+
+            -- call this trait for all entities
+            propagate_trait(trait_archetype, trait)
+
+            return function()
+                trait_archetype.traits[trait] = nil
+                propagate_remove(trait_archetype, trait)
+            end
+        end
+    end
     return world :: any
 end
 
@@ -302,6 +380,7 @@ type id = types.id
 type entity<T = any> = types.entity<T>
 type record = types.record
 type column = types.column
+type trait = types.trait
 
 type archetype = types.archetype
 type command_operation<T = any> = types.command_operation<T>
