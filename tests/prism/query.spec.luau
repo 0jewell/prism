@@ -112,5 +112,40 @@ return function(testing: testing)
             expect(#seen).is(2)
             expect(w.records[e]).is(nil)
         end)
+
+        test('should not retrigger query when component is removed inside another query', function()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local c = w.spawn()
+
+            local e = w.spawn()
+            --[ A, B ]
+            w.insert(e, a)
+            w.insert(e, b)
+
+            local first_calls = 0
+            local second_calls = 0
+
+            w.query(a, b) (function(entity)
+                first_calls += 1
+
+                -- [ A, B, C]
+                w.insert(entity, c)
+            end)
+
+            w.query(b, c) (function(entity)
+                second_calls += 1
+
+                -- [ A, B ]
+                w.remove(entity, c)
+            end)
+
+            expect(first_calls).is(1)
+            expect(second_calls).is(1)
+
+            w.insert(e, c)
+            expect(second_calls).is(2)
+        end)
     end)
 end
