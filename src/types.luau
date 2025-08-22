@@ -49,17 +49,14 @@ type world_fields<usage = id> = {
     deferred: set<usage>
 }
 
-export type world = typeof(setmetatable({} :: world_fields, {} :: world_impl))
+export type world = world_fields & world_impl
 
 type world_impl = {
-    __index: world_impl,
-    new: () -> world,
     insert: <T>(entity: id, component: id, data: T?) -> (),
     remove: (entity: id, component: id) -> (),
     get: (entity: id, ...id) -> ...any,
     spawn: () -> id,
     despawn: (entity: id) -> (),
-    delete: (entity: id) -> (),
     query: (...id) -> (trait: trait) -> () -> (),
     has: (entity: id, component: id?) -> boolean,
 }
@@ -72,14 +69,11 @@ type world_get<world = world> =
 & (<T, T1, T2, T3, T4>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>, d: entity<T3>, e: entity<T4>) -> (T?, T1?, T2?, T3?, T4?))
 
 export type mock_world = world_fields<entity> & {
-    __index: mock_world,
-    new: () -> mock_world,
     insert: <T>(entity: entity, component: entity<T>, data: T?) -> (),
     remove: (entity: entity, component: entity) -> (),
     get: world_get<mock_world>,
     spawn: () -> entity,
     despawn: (entity: entity) -> (),
-    delete: (entity: entity) -> (),
     query: (...entity) -> (trait: trait<entity>) -> () -> (),
     has: (entity: entity, component: entity?) -> boolean,
 }
