@@ -4,7 +4,7 @@ Entities are unique identifiers that act as containers for components, defining 
 Entities do not store logic or behavior directly; instead, [traits](Traits.md) (systems) operate on entities based on their assigned components.
 
 ```luau
-local entity = world:spawn()
+local entity = world.spawn()
 ```
 
 ## Components
@@ -20,14 +20,14 @@ The distinction between an "entity" and a "component" is entirely **semantic and
 - When it's used as a **standalone game object** (like a player, enemy, or projectile), we refer to it as a *primary entity*.
 
 ```luau
-local player = world:spawn() -- 'player' is a game object
-local health = world:spawn() -- 'health' is a component
-world:assign(player, health, 100) -- Here, 'health' acts as a component
+local player = world.spawn() -- 'player' is a game object
+local health = world.spawn() -- 'health' is a component
+world.insert(player, health, 100) -- Here, 'health' acts as a component
 ```
 
 Because components are just identifiers, **you could technically assign any entity to another — even the same one:**
-```lua linenums="4"
-world:assign(player, player, player)
+```luau linenums="4"
+world.insert(player, player, player)
 ```
 
 This works because the world treats the *second* parameter (`player`) as the **component label**,
@@ -40,15 +40,15 @@ They can serve various purposes such as:
 
 - Serving as simple tags (e.g., "this entity is a `player`").
 ```luau
-local player = world:spawn()
-world:assign(entity, player)
+local player = world.spawn()
+world.insert(entity, player)
 ```
 
 - Holding structured data (e.g., "this entity has `health` with a maximum of `100`").
 ```luau
-local health = world:spawn()
+local health = world.spawn()
 local data = { max = 100, current = 100 }
-world:assign(entity, health, data)
+world.insert(entity, health, data)
 ```
 
 !!! tip Recommendation

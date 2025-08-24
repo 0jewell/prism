@@ -29,7 +29,7 @@ type health_data = entity<{
     max: number,
     current: number
 }>
-local health = world:spawn() :: health_data
+local health = world.spawn() :: health_data
 ```
 
 In this code, `health` is typed as:
@@ -48,12 +48,12 @@ But in reality, it is a number.
 You can get full type check support when asking for data using a typed component:
 
 ```luau hl_lines="8"
-local entity = world:spawn()
+local entity = world.spawn()
 
-world:assign(entity, health, {
+world.insert(entity, health, {
     max = 100,
     current = 100
 })
 
-local health_data = world:ask(entity, health) --> data is typed
+local health_data = world.get(entity, health) --> data is typed
 ```

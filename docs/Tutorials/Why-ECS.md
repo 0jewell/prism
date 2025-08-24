@@ -33,12 +33,9 @@ you spawn an entity in the world and insert components like `Health` and `Positi
 
 ```lua
 -- you do this:
-local id = world:spawn()
-
-world:insert(id,
-    Health, 50,
-    Position, Vector3.new(0, 5, 0)
-)
+local entity = world.spawn()
+world.insert(entity, Health, 50)
+world.insert(entity, Position, Vector3.new(0, 5, 0))
 ```
 
 Then a **trait** somewhere else processes all entities that have `Position` and `Velocity` components and moves them accordingly.
