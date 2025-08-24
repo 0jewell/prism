@@ -1,14 +1,15 @@
-local world = require('@self/world')
-export type world = world.mock_world
-export type entity<T = any> = world.entity<T>
-
-export type archetype = world.archetype<entity>
-export type record = world.record<entity>
-
-local debugger = require('@self/debug/trace')
-export type stackframe = debugger.stackframe
+-- types
+local types = require('@self/types')
+export type world = types.mock_world
+export type entity<T = any> = types.entity<T>
+export type archetype = types.archetype
+export type trait = types.trait
 
 return {
-    world = world,
-    debugger = debugger
+    -- ecs
+    world = require('@self/world'),
+    archetype = require('@self/archetype'),
+
+    -- scope
+    clean = require('@self/clean')
 }

@@ -1,7 +1,5 @@
 local prism = require('@prism/')
-local world = prism.world
-
-local w = world.new()
+local w = prism.world()
 
 local function color(r, g, b)
     return string.format('\27[38;2;%d;%d;%dm', r, g, b)
@@ -18,30 +16,24 @@ local function benchmark()
 ║            prism benchmark report           ║
 ╚════════════════════════════════════════════╝
 ]] .. reset)
-
-    local query_count = 100
     local entity_count = 10_000
 
-    local c1, c2 = w:spawn(), w:spawn()
-    local c3, c4 = w:spawn(), w:spawn()
-    local c5, c6 = w:spawn(), w:spawn()
-    local c7, c8 = w:spawn(), w:spawn()
+    local c1, c2 = w.spawn(), w.spawn()
+    local c3, c4 = w.spawn(), w.spawn()
+    local c5, c6 = w.spawn(), w.spawn()
+    local c7, c8 = w.spawn(), w.spawn()
 
     local all_components = { c1, c2, c3, c4, c5, c6, c7, c8 }
     local components_per_entity = #all_components
-
-    for _ = 1, query_count do
-        w:query(c1, c2, c3, c4, c5, c6, c7, c8)(function() end)
-    end
 
     print(gray .. '• inserting entities and components...' .. reset)
 
     local start = os.clock()
 
     for i = 1, entity_count do
-        local e = w:spawn()
+        local e = w.spawn()
         for j = 1, components_per_entity do
-            w:assign(e, all_components[j])
+            w.insert(e, all_components[j])
         end
     end
 

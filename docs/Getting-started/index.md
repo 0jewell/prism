@@ -6,7 +6,7 @@ First, import Prism and create your world:
 ```luau title="shared/world.luau"
 local prism = require(ReplicatedStorage.prism)
 
-local world = prism.world.new()
+local world = prism.world()
 
 return world
 ```
@@ -19,8 +19,8 @@ Next, define your components module
 local world = require(shared.world)
 
 return {
-    alive = world:spawn(),
-    energy = world:spawn()
+    alive = world.spawn(),
+    energy = world.spawn()
 }
 ```
 
@@ -37,12 +37,12 @@ local world = require(shared.world)
 local components = require(shared.components)
 local alive, energy = components.alive, components.energy
 
-world:query(alive, energy) (function(entity, clean)
+world.query(alive, energy) (function(entity, clean)
     -- regenerate 1 energy every second
     local loop = task.spawn(function()
         while task.wait(1) do
-            local energy = world:ask(entity, energy)
-            world:assign(entity, math.min(100, energy + 1))
+            local energy = world.get(entity, energy)
+            world.insert(entity, math.min(100, energy + 1))
         end
     end)
     
@@ -58,12 +58,9 @@ return nil
 Now, create an entity with some initial energy and the `alive` component
 
 ```luau
-local player = world:spawn()
-
-world:insert(player,
-    energy, 50,
-    alive, true
-)
+local player = world.spawn()
+world.insert(player, energy, 50)
+world.insert(player, alive, true)
 ```
 
 ## Next steps

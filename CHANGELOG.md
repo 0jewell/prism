@@ -11,10 +11,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Removed
 - Removed `world:component`
 - Removed `prism.component<T>` type
+- Removed `self` argument from all methods
 
 ### Changes
 
 - Changed trait scope argument to be a insert function instead
+- Changed `world:ask` to `world:get`
+- Merged `world:delete` into `world:despawn`
+- Operations on entities inside traits are now deferred
+- World module was divided into `archetype.luau`, `world.luau` and `types.luau`
 
 ## 0.2.1
 

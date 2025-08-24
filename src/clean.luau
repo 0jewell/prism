@@ -1,13 +1,10 @@
 --!nolint LocalShadow
 
 -- types
+local types = require('./types')
+type scope = types.scope
 
--- storage for temporary data passed to traits
-export type scope = { unknown }
-
-local function clean(
-	scope: scope
-)
+local function clean(scope: scope): ()
     for index = #scope, 1, -1 do
         local task = scope[index]
 

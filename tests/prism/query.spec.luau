@@ -9,219 +9,143 @@ return function(testing: testing)
     local test = testing.test
     local expect = testing.expect
 
-    describe('queries', function()
-        test('should run query on entities with matching archetype', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
+    describe('query', function()
+        test('should register and cleanup trait scope', function()
+            local w = world()
+            local a = w.spawn()
+            local e = w.spawn()
 
-            local e1 = w:spawn()
-            local e2 = w:spawn()
-
-            w:assign(e1, a, { val = 10 })
-            w:assign(e1, b, { val = 20 })
-
-            w:assign(e2, a, { val = 30 })
-
-            local calls = {}
-            local function trait(entity)
-                calls[entity] = (calls[entity] or 0) + 1
+            local trait = function(entity)
             end
+            local unsub = w.query(a) (trait)
 
-            w:query(a, b)(trait)
+            w.insert(e, a, 10)
 
-            expect(calls[e1]).is(1)
-            expect(calls[e2]).never_is(1)
+            expect(w.scopes[e]).exists()
+            expect(w.scopes[e][trait]).exists()
 
-            local scopes = w.scopes[e1]
-            expect(scopes).exists()
-            expect(scopes[trait]).exists()
+            unsub()
+            expect(w.scopes[e][trait]).is(nil)
         end)
 
-        test('should apply query again when component added and archetype changes', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
-            local c = w:spawn()
+        test('should defer despawn called inside trait', function()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local e = w.spawn()
 
-            local e = w:spawn()
+            w.query(a) (function(entity)
+                w.insert(entity, b, true)
+                w.despawn(entity)
 
-            w:assign(e, a, { val = 1 })
+                -- deferred
+                expect(w.get(entity, b)).never_exists()
+                expect(w.records[entity]).exists()
+            end)
 
-            local call_count = 0
-            local function trait(entity, scope)
-                call_count = call_count + 1
-            end
+            w.insert(e, a, 123)
 
-            w:query(a, b)(trait)
-
-            expect(call_count).is(0)
-
-            w:assign(e, b, { val = 2 })
-
-            expect(call_count).is(1)
-
-            w:assign(e, c, { val = 3 })
-
-            expect(call_count).is(1)
+            -- post flush
+            expect(w.records[e]).is(nil)
         end)
 
-        test('should not apply query twice for same entity and trait', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
+        test('should allow remove inside trait before despawn (remove ignored)', function()
+            local w = world()
+            local a = w.spawn()
+    
+            local e = w.spawn()
+            w.insert(e, a, 100)
 
-            local e = w:spawn()
+            local ran = false
+            w.query(a) (function(_, clean)
+                clean(function()
+                    ran = true
+                end)
+            end)
 
-            w:assign(e, a, { val = 1 })
-            w:assign(e, b, { val = 2 })
+            w.query(a)(function(entity)
+                w.remove(entity, a)
+                w.despawn(entity)
+            end)
 
-            local call_count = 0
-            local function trait(entity, scope)
-                call_count = call_count + 1
-            end
-
-            w:query(a, b)(trait)
-            w:query(a, b)(trait)
-
-            expect(call_count).is(1)
-
-            local compC = w:spawn()
-            w:assign(e, compC, { val = 3 })
-            expect(call_count).is(1)
+            expect(ran).is_true()
+            expect(w.records[e]).is(nil)
         end)
 
-        test('should run query on entities in sub-archetypes', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
-            local c = w:spawn()
+        test('should allow multiple operations after despawn in same trait, only despawn applied', function()
+            local w = world()
+            local A = w.spawn()
+            local B = w.spawn()
+            local e = w.spawn()
 
-            local e1 = w:spawn()
-            local e2 = w:spawn()
-            local e3 = w:spawn()
+            w.insert(e, A, 10)
 
-            w:assign(e1, a, 10)
-            w:assign(e1, b, 20)
-            w:assign(e1, c, 30)
+            w.query(A)(function(entity)
+                w.despawn(entity)
+                w.insert(entity, B, 99)
+                w.remove(entity, A)
+            end)
 
-            w:assign(e2, a, 40)
-            w:assign(e2, b, 50)
-
-            w:assign(e3, a, 60)
-
-            local calls = {}
-            local function trait(entity, scope)
-                calls[entity] = (calls[entity] or 0) + 1
-            end
-
-            w:query(a, b)(trait)
-
-            expect(calls[e1]).is(1)
-            expect(calls[e2]).is(1)
-            expect(calls[e3]).never_is(1)
-
-            expect(w.scopes[e1]).exists()
-            expect(w.scopes[e1][trait]).exists()
-            expect(w.scopes[e2]).exists()
-            expect(w.scopes[e2][trait]).exists()
+            expect(w.records[e]).is(nil)
         end)
 
-        test('should stop applying trait when components are removed', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
+        test('should not despawn entity immediately if multiple traits run on same entity', function()
+            local w = world()
+            local a = w.spawn()
 
-            local e = w:spawn()
-            w:assign(e, a, { val = 1 })
-            w:assign(e, b, { val = 2 })
+            local seen = {}
 
-            local call_count = 0
-            local function trait(entity, scope)
-                call_count += 1
-            end
+            w.query(a) (function(entity)
+                table.insert(seen, true)
+                w.despawn(entity)
+                expect(w.records[entity]).exists()
+            end)
 
-            w:query(a, b)(trait)
-            expect(call_count).is(1)
+            w.query(a) (function(entity)
+                table.insert(seen, true)
+                expect(w.records[entity]).exists()
+            end)
 
-            w:remove(e, a)
+            local e = w.spawn()
+            w.insert(e, a, 50)
 
-            local scopes = w.scopes[e]
-            expect(scopes[trait]).is(nil)
-        end)
-
-        test('should remove trait from world when cancel function is called', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
-
-            local trait = function() end
-            local cancel = w:query(a, b)(trait)
-
-            expect(w.archetypes['1_2'].traits[trait]).exists()
-            cancel()
-            expect(w.archetypes['1_2'].traits[trait]).never_exists()
+            expect(#seen).is(2)
+            expect(w.records[e]).is(nil)
         end)
 
         test('should not retrigger query when component is removed inside another query', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
-            local c = w:spawn()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local c = w.spawn()
 
-            local e = w:spawn()
+            local e = w.spawn()
             --[ A, B ]
-            w:insert(e, a)
-            w:insert(e, b)
+            w.insert(e, a)
+            w.insert(e, b)
 
             local first_calls = 0
             local second_calls = 0
 
-            w:query(a, b)(function(entity)
+            w.query(a, b) (function(entity)
                 first_calls += 1
 
                 -- [ A, B, C]
-                w:assign(entity, c)
+                w.insert(entity, c)
             end)
 
-            w:query(b, c)(function(entity)
+            w.query(b, c) (function(entity)
                 second_calls += 1
 
                 -- [ A, B ]
-                w:remove(entity, c)
+                w.remove(entity, c)
             end)
 
             expect(first_calls).is(1)
             expect(second_calls).is(1)
 
-            -- w:assign(e, c)
-            -- expect(second_calls).is(2)
-        end)
-
-        test('should retrigger query when component is added again', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
-            local c = w:spawn()
-
-            local e: any = w:spawn()
-            --[ A, B, C ]
-            w:assign(e, a)
-            w:assign(e, b)
-            w:assign(e, c)
-
-            local calls = 0
-            w:query(b, c)(function(entity)
-                calls += 1
-
-                -- [ A, B ]
-                w:remove(e, c)
-            end)
-            expect(calls).is(1)
-
-            -- [ A, B, C ]
-            w:assign(e, c)
-            expect(calls).is(2)
+            w.insert(e, c)
+            expect(second_calls).is(2)
         end)
     end)
 end

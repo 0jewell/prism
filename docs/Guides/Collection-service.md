@@ -25,21 +25,18 @@ local function spawn_bound(
     instance: Instance,
     component: entity
 )
-    local id = world:spawn()
+    local entity = world.spawn()
+    world.insert(entity, component)
+    world.insert(entity, instance, instance)
 
-    world:insert(id,
-        component, nil,
-        instance, instance
-    )
-
-    instance:SetAttribute('serverid', id)
+    instance:SetAttribute('id', id)
 end
 
 -- loads a collection tag as a component
 local function load_collection(tag: string): entity
     if tags[tag] then return tags[tag] end
 
-    local tag_component = world:spawn()
+    local tag_component = world.spawn()
     tags[tag] = tag_component
 
     local function on_added(instance)
@@ -50,7 +47,7 @@ local function load_collection(tag: string): entity
     local function on_removed(instance)
         local id = instance:GetAttribute('serverid')
         if id then
-            world:despawn(id)
+            world.despawn(id)
         end
     end
     CollectionService:GetInstanceRemovedSignal(tag):Connect(on_removed)
@@ -71,13 +68,12 @@ return load_collection
 local tag = require(shared.tag)
 local killpart = tag('Killpart')
 
-world:query(killpart, instance) (function(entity, scope)
-    local instance = world:ask(entity, instance)
+world.query(killpart, instance) (function(entity, clean)
+    local instance = world.get(entity, instance)
 
     local connection = instance.Touched:Connect(function(touch)
         -- kill logic
     end)
-
-    table.insert(scope, connection)
+    clean(connection)
 end)
 ```

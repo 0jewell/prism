@@ -20,22 +20,17 @@ This is a rework of **Celesta**, my old ECS library, created a couple months ago
 ```lua
 local world = require(shared.world)
 
-local health = world:spawn()
-local damaged = world:spawn()
+local health = world.spawn()
+local damaged = world.spawn()
 
-local entity = world:spawn()
+local entity = world.spawn()
+world.insert(entity, health, 100)
+world.insert(entity, damaged, 10)
 
-world:insert(entity,
-    health, 100,
-    damaged, 10
-)
+world.query(health, damaged) (function(entity)
+    local health, damaged = world.get(entity, health, damaged)
 
-world:query(health, damaged) (function(entity)
-    local health = world:ask(entity, health)
-    local damaged = world:ask(entity, damaged)
-
-    world:assign(entity, health, math.max(0, health - damaged)
-
-    world:remove(entity, damaged)
+    world.insert(entity, health, math.max(0, health - damaged)
+    world.remove(entity, damaged)
 end)
 ```

@@ -7,6 +7,7 @@ When using Prism as a variable in your code, it contains a dictionary with the f
 ```luau title="Prism.luau"
 return {
     world = require('@self/world'),
-    debugger = require('@self/debugger')
+    archetype = require('@self/archetype'),
+    clean = require('@self/clean')
 }
 ```

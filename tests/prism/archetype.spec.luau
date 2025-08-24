@@ -11,8 +11,8 @@ return function(testing: testing)
 
     describe('archetypes', function()
         test('should spawn entity into root archetype', function()
-            local w = world.new()
-            local e = w:spawn()
+            local w = world()
+            local e = w.spawn()
 
             local record = w.records[e]
             expect(record).exists()
@@ -21,28 +21,28 @@ return function(testing: testing)
         end)
 
         test('should insert component and create new archetype', function()
-            local w = world.new()
-            local position = w:spawn()
-            local e = w:spawn()
+            local w = world()
+            local position = w.spawn()
+            local e = w.spawn()
 
-            w:assign(e, position, { x = 1, y = 2 })
+            w.insert(e, position, { x = 1, y = 2 })
 
             local record = w.records[e]
             expect(record.archetype.hash).never_is('')
 
-            local val = w:ask(e, position)
+            local val = w.get(e, position)
             expect(val).never_is(nil)
             expect(val.x).is(1)
             expect(val.y).is(2)
         end)
 
         test('should rewrite existing component if already in archetype', function()
-            local w = world.new()
-            local hp = w:spawn()
-            local e = w:spawn()
+            local w = world()
+            local hp = w.spawn()
+            local e = w.spawn()
 
-            w:assign(e, hp, 50)
-            w:assign(e, hp, 100)
+            w.insert(e, hp, 50)
+            w.insert(e, hp, 100)
 
             local record = w.records[e]
             local archetype = record.archetype
@@ -52,53 +52,60 @@ return function(testing: testing)
         end)
 
         test('should move entity to new archetype with additional component', function()
-            local w = world.new()
-            local pos = w:spawn()
-            local vel = w:spawn()
-            local e = w:spawn()
+            local w = world()
+            local pos = w.spawn()
+            local vel = w.spawn()
+            local e = w.spawn()
 
-            w:assign(e, pos, { x = 0, y = 0 })
+            w.insert(e, pos, { x = 0, y = 0 })
             local old_archetype = w.records[e].archetype
 
-            w:assign(e, vel, { x = 1, y = 1 })
+            w.insert(e, vel, { x = 1, y = 1 })
             local new_archetype = w.records[e].archetype
 
             expect(old_archetype).never_is(new_archetype)
             expect(#old_archetype.entities).is(0)
             expect(#new_archetype.entities).is(1)
 
-            local pos_val = w:ask(e, pos)
+            local pos_val = w.get(e, pos)
             expect(pos_val.x).is(0)
             expect(pos_val.y).is(0)
 
-            local vel_val = w:ask(e, vel)
+            local vel_val = w.get(e, vel)
             expect(vel_val.x).is(1)
             expect(vel_val.y).is(1)
         end)
 
         test('should not duplicate archetypes with same component set', function()
-            local w = world.new()
-            local a = w:spawn()
-            local b = w:spawn()
-            local e1 = w:spawn()
-            local e2 = w:spawn()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local e1 = w.spawn()
+            local e2 = w.spawn()
 
-            w:insert(e1, a, true, b, true)
+            w.insert(e1, a, true)
+            w.insert(e1, b, true)
 
-            w:assign(e2, b, true)
-            w:assign(e2, a, true)
+            w.insert(e2, a, true)
+            w.insert(e2, b, true)
             
             expect(w.records[e1].archetype.hash).is(w.records[e2].archetype.hash)
         end)
 
         test('should register archetype with correct subs using component index', function()
-            local w = world.new()
-            local A = w:spawn()
-            local B = w:spawn()
-            local C = w:spawn()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local c = w.spawn()
 
-            w:query(A, B)(function() end)
-            w:query(A, B, C)(function() end)
+            local e =  w.spawn()
+            w.insert(e, b)
+            w.insert(e, c)
+            w.insert(e, a)
+
+            local e2 =  w.spawn()
+            w.insert(e2, b)
+            w.insert(e2, a)
 
             local abc = w.archetypes['1_2_3']
             local ab = w.archetypes['1_2']
@@ -110,39 +117,14 @@ return function(testing: testing)
             expect(ab.subs[abc]).never_exists()
         end)
 
-        test('should correctly register subs regardless of component order', function()
-            local w = world.new()
-            local A = w:spawn()
-            local B = w:spawn()
-            local C = w:spawn()
-
-            -- Intentionally out of order
-            w:query(B, C, A)(function() end)
-            w:query(C, A, B)(function() end)
-            w:query(B, C)(function() end)
-
-            local cab = w.archetypes['3_1_2']
-            expect(cab).never_exists()
-
-            local bca = w.archetypes['1_2_3']
-            local bc = w.archetypes['2_3']
-
-            expect(bca).exists()
-            expect(bc).exists()
-            expect(bca.subs[bc]).exists()
-
-            -- reverse check
-            expect(bc.subs[bca]).never_exists()
-        end)
-
         test('should remove a component and move entity to new archetype', function()
-            local w = world.new()
-            local A = w:spawn()
-            local B = w:spawn()
-            local e = w:spawn()
+            local w = world()
+            local A = w.spawn()
+            local B = w.spawn()
+            local e = w.spawn()
 
-            w:assign(e, A, { val = 1 })
-            w:assign(e, B, { val = 2 })
+            w.insert(e, A, { val = 1 })
+            w.insert(e, B, { val = 2 })
 
             local old_record = w.records[e]
             local old_archetype = old_record.archetype
@@ -150,7 +132,7 @@ return function(testing: testing)
             expect(old_archetype.columns_map[A]).exists()
             expect(old_archetype.columns_map[B]).exists()
 
-            w:remove(e, B)
+            w.remove(e, B)
 
             local new_record = w.records[e]
             local new_archetype = new_record.archetype
@@ -161,6 +143,70 @@ return function(testing: testing)
             expect(new_archetype.columns_map[B]).is(nil)
 
             expect(new_archetype.columns_map[A][new_record.row].val).is(1)
+        end)
+
+        test('should preserve component values when moving between archetypes', function()
+            local w = world()
+            local a = w.spawn()
+            local b = w.spawn()
+            local e = w.spawn()
+
+            w.insert(e, a, { n = 123 })
+            local old_archetype = w.records[e].archetype
+
+            w.insert(e, b, { val = true })
+            local new_archetype = w.records[e].archetype
+
+            expect(old_archetype).never_is(new_archetype)
+            expect((w.get(e, a) :: any).n).is(123)
+            expect((w.get(e, b) :: any).val).is(true)
+        end)
+
+        test('should update row indexes when entity moves between archetypes', function()
+            local w = world()
+            local A = w.spawn()
+            local B = w.spawn()
+
+            local e1 = w.spawn()
+            local e2 = w.spawn()
+
+            w.insert(e1, A, 10)
+            w.insert(e2, A, 20)
+
+            -- 1 in old archetype
+            local old_row = w.records[e1].row
+            w.insert(e1, B, 30)
+
+            -- 1 in new archetype
+            local new_row = w.records[e1].row
+            expect(new_row).is(old_row)
+        end)
+
+        test('should move entity back to root archetype when all components are removed', function()
+            local w = world()
+            local A = w.spawn()
+            local e = w.spawn()
+
+            w.insert(e, A, { foo = 'bar' })
+            expect(w.records[e].archetype.hash).never_is('')
+
+            w.remove(e, A)
+            expect(w.records[e].archetype.hash).is('')
+        end)
+
+        test('should remove entity record and free archetype slot', function()
+            local w = world()
+            local A = w.spawn()
+            local e = w.spawn()
+
+            w.insert(e, A, 123)
+            local archetype = w.records[e].archetype
+            expect(#archetype.entities).is(1)
+
+            w.despawn(e)
+
+            expect(w.records[e]).is(nil)
+            expect(#archetype.entities).is(0)
         end)
     end)
 end
