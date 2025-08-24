@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.17">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
     
     
       
@@ -940,7 +940,7 @@
 <h1 id="entities-and-components">Entities and components</h1>
 <p>Entities are unique identifiers that act as containers for components, defining their data and state.
 Entities do not store logic or behavior directly; instead, <a href="../Traits/">traits</a> (systems) operate on entities based on their assigned components.</p>
-<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">entity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">entity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">.</span><span class="nf">spawn</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
 <h2 id="components">Components</h2>
 <p>To first understand components, you need to understand that: <strong>components are also entities.</strong></p>
@@ -953,12 +953,12 @@ When you create something like <code>health</code> or <code>player</code>, you'r
 </ul>
 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
 <span class="normal"><a href="#__codelineno-1-2">2</a></span>
-<span class="normal"><a href="#__codelineno-1-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span><span class="w"> </span><span class="c1">-- &#39;player&#39; is a game object</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span><span class="w"> </span><span class="c1">-- &#39;health&#39; is a component</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="nv">world</span><span class="p">:</span><span class="nc">assign</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Here, &#39;health&#39; acts as a component</span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">.</span><span class="nf">spawn</span><span class="p">()</span><span class="w"> </span><span class="c1">-- &#39;player&#39; is a game object</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">.</span><span class="nf">spawn</span><span class="p">()</span><span class="w"> </span><span class="c1">-- &#39;health&#39; is a component</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="nv">world</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Here, &#39;health&#39; acts as a component</span>
 </code></pre></div></td></tr></table></div>
 <p>Because components are just identifiers, <strong>you could technically assign any entity to another — even the same one:</strong>
-<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="nv">world</span><span class="p">:</span><span class="nf">assign</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="nv">world</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div></p>
 <p>This works because the world treats the <em>second</em> parameter (<code>player</code>) as the <strong>component label</strong>,
 and the <em>third</em> as the <strong>value</strong> being associated. What matters is not what the entity "is," <strong>but how it's used.</strong></p>
@@ -969,17 +969,17 @@ They can serve various purposes such as:</p>
 <li>
 <p>Serving as simple tags (e.g., "this entity is a <code>player</code>").
 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span>
-<span class="normal"><a href="#__codelineno-3-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="nv">world</span><span class="p">:</span><span class="nc">assign</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-3-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">.</span><span class="nf">spawn</span><span class="p">()</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="nv">world</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div></p>
 </li>
 <li>
 <p>Holding structured data (e.g., "this entity has <code>health</code> with a maximum of <code>100</code>").
 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
 <span class="normal"><a href="#__codelineno-4-2">2</a></span>
-<span class="normal"><a href="#__codelineno-4-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">:</span><span class="nc">spawn</span><span class="p">()</span>
+<span class="normal"><a href="#__codelineno-4-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">world</span><span class="p">.</span><span class="nf">spawn</span><span class="p">()</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100</span><span class="p">,</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="nv">world</span><span class="p">:</span><span class="nc">assign</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="nv">data</span><span class="p">)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="nv">world</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">,</span><span class="w"> </span><span class="nv">data</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div></p>
 </li>
 </ul>
