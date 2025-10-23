@@ -62,11 +62,11 @@ type world_impl = {
 }
 
 type world_get<world = world> =
-(<T>(id: entity, a: entity<T>) -> T?)
-& (<T, T1>(id: entity, a: entity<T>, b: entity<T1>) -> (T?, T1?))
-& (<T, T1, T2>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>) -> (T?, T1?, T2?))
-& (<T, T1, T2, T3>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>, d: entity<T3>) -> (T?, T1?, T2?, T3?))
-& (<T, T1, T2, T3, T4>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>, d: entity<T3>, e: entity<T4>) -> (T?, T1?, T2?, T3?, T4?))
+(<T>(id: entity, a: entity<T>) -> T)
+& (<T, T1>(id: entity, a: entity<T>, b: entity<T1>) -> (T, T1))
+& (<T, T1, T2>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>) -> (T, T1, T2))
+& (<T, T1, T2, T3>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>, d: entity<T3>) -> (T, T1, T2, T3))
+& (<T, T1, T2, T3, T4>(id: entity, a: entity<T>, b: entity<T1>, c: entity<T2>, d: entity<T3>, e: entity<T4>) -> (T, T1, T2, T3, T4))
 
 export type mock_world = world_fields<entity> & {
     insert: <T>(entity: entity, component: entity<T>, data: T?) -> (),
