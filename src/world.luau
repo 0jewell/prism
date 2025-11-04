@@ -1,6 +1,5 @@
 --!optimize 2
 --!native
---!strict
 
 -- modules
 local clean = require('./clean')

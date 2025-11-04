@@ -1,5 +1,3 @@
---!nolint LocalShadow
-
 -- types
 local types = require('./types')
 type scope = types.scope

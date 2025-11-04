@@ -1,10 +1,17 @@
 drafts
 
-# Lock files
+# lock files
 *.lock
 
-# Rojo
+# pesde
+.pesde
+
+luau_packages
+lune_packages
+roblox_packages
+
+# rojo
 sourcemap.json
 
-# Mkdocs
+# docs
 site
