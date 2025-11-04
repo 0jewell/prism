@@ -1,8 +1,8 @@
 # Installing Prism
 
-## with Wally <small>recommended</small>
+## with Pesde <small>recommended</small>
 
-In your `wally.toml`, add the following line to your dependencies.
+Run the following command in your terminal:
 ```sh
-prism = "0jewell/prism@0.2.1"
+pesde add 0jewell/prism
 ```
