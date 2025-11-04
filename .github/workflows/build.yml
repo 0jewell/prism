@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          wally install
+          pesde install
 
       - name: Build rbxm file
         run: |
