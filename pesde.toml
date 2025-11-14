@@ -8,7 +8,7 @@ license = 'MIT'
 includes = ['src/*', 'pesde.toml', 'README.md', 'LICENSE']
 
 [target]
-environment = 'luau'
+environment = 'roblox'
 lib = 'src/init.luau'
 build_files = ['src']
 
