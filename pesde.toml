@@ -5,7 +5,7 @@ authors = ['0jewell']
 repository = 'https://github.com/0jewell/prism'
 license = 'MIT'
 
-includes = ['src/*', 'default.project.json', 'pesde.toml', 'README.md', 'LICENSE']
+includes = ['src/*', 'pesde.toml', 'README.md', 'LICENSE']
 
 [target]
 environment = 'luau'

@@ -6,10 +6,8 @@ export type archetype = types.archetype
 export type trait = types.trait<entity>
 
 return {
-    -- ecs
     world = require('@self/world'),
     archetype = require('@self/archetype'),
 
-    -- scope
     clean = require('@self/clean')
 }

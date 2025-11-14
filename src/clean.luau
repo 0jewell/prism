@@ -2,6 +2,7 @@
 local types = require('./types')
 type scope = types.scope
 
+-- this
 local function clean(scope: scope): ()
     for index = #scope, 1, -1 do
         local task = scope[index]

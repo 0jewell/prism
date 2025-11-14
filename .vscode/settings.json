@@ -7,9 +7,8 @@
   "luau-lsp.sourcemap.useVSCodeWatcher": true,
 
   "luau-lsp.ignoreGlobs": [
-    "**/luau_packages/**",
     "**/lune_packages/**",
-    "**/.pesde/**",
-    "drafts/**",
+    "**/luau_packages/**",
+    "**/roblox_packages/**"
   ]
 }
